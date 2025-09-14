@@ -29,9 +29,6 @@ export interface Message {
   status?: MessageStatus;
   deliveryTime?: Date;
   reactions?: MessageReaction[];
-  isEditable?: boolean;
-  editedAt?: Date;
-  originalText?: string;
   readBy?: string[]; // Array of user IDs who have read this message
   attachments?: Attachment[]; // Media attachments
 }
@@ -43,16 +40,6 @@ export interface ChatUser {
 }
 
 export type Theme = 'light' | 'dark';
-
-export interface Conversation {
-  id: string;
-  title: string;
-  participants: ChatUser[];
-  lastMessage?: Message;
-  lastActivity: Date;
-  unreadCount: number;
-  messages: Message[];
-}
 
 export type GroupStatus = 'active' | 'expiring_soon' | 'archived';
 

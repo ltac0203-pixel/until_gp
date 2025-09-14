@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm start
 # or platform-specific:
 npm run android  # Android development
-npm run ios      # iOS development  
+npm run ios      # iOS development
 npm run web      # Web development
 ```
 

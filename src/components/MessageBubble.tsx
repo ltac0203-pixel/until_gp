@@ -12,13 +12,11 @@ import { MediaDisplay } from './MediaDisplay';
 
 interface MessageBubbleProps {
   message: Message;
-  onLongPress?: (message: Message) => void;
   onReactionPress?: (message: Message) => void;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ 
-  message, 
-  onLongPress,
+const MessageBubble: React.FC<MessageBubbleProps> = ({
+  message,
   onReactionPress,
 }) => {
   const { theme } = useTheme();
@@ -65,45 +63,35 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           {message.sender}
         </Text>
       )}
-      <TouchableOpacity 
-        onLongPress={() => onLongPress?.(message)}
-        activeOpacity={0.7}
-      >
-        <View style={[
-          styles.bubble,
-          {
-            backgroundColor: message.isOwnMessage 
-              ? colors.messageBubbleOwn 
-              : colors.messageBubbleOther
-          },
-          message.status === 'pending' && styles.pendingBubble,
-        ]}>
-          {message.text ? (
-            <Text style={[
-              styles.messageText,
-              {
-                color: message.isOwnMessage 
-                  ? colors.messageTextOwn 
-                  : colors.messageTextOther
-              },
-              message.status === 'pending' && styles.pendingText,
-            ]}>
-              {message.text}
-            </Text>
-          ) : null}
-          {message.attachments && message.attachments.length > 0 && (
-            <MediaDisplay 
-              attachments={message.attachments} 
-              isOwnMessage={message.isOwnMessage}
-            />
-          )}
-          {message.editedAt && (
-            <Text style={[styles.editedLabel, { color: colors.textSecondary }]}>
-              (編集済み)
-            </Text>
-          )}
-        </View>
-      </TouchableOpacity>
+      <View style={[
+        styles.bubble,
+        {
+          backgroundColor: message.isOwnMessage
+            ? colors.messageBubbleOwn
+            : colors.messageBubbleOther
+        },
+        message.status === 'pending' && styles.pendingBubble,
+      ]}>
+        {message.text ? (
+          <Text style={[
+            styles.messageText,
+            {
+              color: message.isOwnMessage
+                ? colors.messageTextOwn
+                : colors.messageTextOther
+            },
+            message.status === 'pending' && styles.pendingText,
+          ]}>
+            {message.text}
+          </Text>
+        ) : null}
+        {message.attachments && message.attachments.length > 0 && (
+          <MediaDisplay
+            attachments={message.attachments}
+            isOwnMessage={message.isOwnMessage}
+          />
+        )}
+      </View>
       
       {message.reactions && message.reactions.length > 0 && (
         <TouchableOpacity 
@@ -195,12 +183,6 @@ const styles = StyleSheet.create({
   },
   pendingText: {
     fontStyle: 'italic',
-  },
-  editedLabel: {
-    fontSize: 11,
-    marginTop: 4,
-    fontStyle: 'italic',
-    opacity: 0.7,
   },
   metaContainer: {
     flexDirection: 'row',

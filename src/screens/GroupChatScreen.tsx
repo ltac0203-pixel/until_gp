@@ -18,7 +18,6 @@ import { Message, Group } from '../types';
 import { StorageService } from '../services/storage';
 import MessageBubble from '../components/MessageBubble';
 import MessageInput from '../components/MessageInput';
-import EditMessageModal from '../components/EditMessageModal';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -37,7 +36,6 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
   const { groupId } = route.params;
   const [group, setGroup] = useState<Group | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const flatListRef = useRef<FlatList>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showGroupDetails, setShowGroupDetails] = useState(false);
@@ -110,55 +108,6 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
     }, 100);
   };
 
-  const handleEditMessage = (message: Message) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setEditingMessage(message);
-  };
-
-  const handleUpdateMessage = async (updatedText: string) => {
-    if (!editingMessage || !group) return;
-
-    const updatedMessage = {
-      ...editingMessage,
-      text: updatedText,
-      editedAt: new Date(),
-      originalText: editingMessage.originalText || editingMessage.text,
-    };
-
-    const updatedMessages = messages.map(msg =>
-      msg.id === editingMessage.id ? updatedMessage : msg
-    );
-    setMessages(updatedMessages);
-
-    const updatedGroup = {
-      ...group,
-      messages: updatedMessages,
-      lastMessage: group.lastMessage?.id === editingMessage.id ? updatedMessage : group.lastMessage,
-    };
-    
-    await StorageService.saveGroup(updatedGroup);
-    setGroup(updatedGroup);
-    setEditingMessage(null);
-  };
-
-  const handleDeleteMessage = async () => {
-    if (!editingMessage || !group) return;
-
-    const updatedMessages = messages.filter(msg => msg.id !== editingMessage.id);
-    setMessages(updatedMessages);
-
-    const updatedGroup = {
-      ...group,
-      messages: updatedMessages,
-      lastMessage: group.lastMessage?.id === editingMessage.id 
-        ? updatedMessages[updatedMessages.length - 1] 
-        : group.lastMessage,
-    };
-    
-    await StorageService.saveGroup(updatedGroup);
-    setGroup(updatedGroup);
-    setEditingMessage(null);
-  };
 
   const handleReaction = async (messageId: string, emoji: string) => {
     if (!group) return;
@@ -203,7 +152,6 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
   const renderMessage = ({ item }: { item: Message }) => (
     <MessageBubble
       message={item}
-      onLongPress={handleEditMessage}
       onReaction={handleReaction}
     />
   );
@@ -289,15 +237,6 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
         />
       </KeyboardAvoidingView>
 
-      {editingMessage && (
-        <EditMessageModal
-          visible={!!editingMessage}
-          message={editingMessage}
-          onUpdate={handleUpdateMessage}
-          onDelete={handleDeleteMessage}
-          onClose={() => setEditingMessage(null)}
-        />
-      )}
 
       <Modal
         visible={showGroupDetails}

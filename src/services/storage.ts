@@ -1,9 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Message, FlowGroupsSettings, Conversation, MessageStatus, Group, GroupLifespan, GroupStatus, DisbandReason } from '../types';
+import { Message, FlowGroupsSettings, MessageStatus, Group, GroupLifespan, GroupStatus, DisbandReason } from '../types';
 
 const MESSAGES_KEY = '@flowgroups_messages';
 const SETTINGS_KEY = '@flowgroups_settings';
-const CONVERSATIONS_KEY = '@flowgroups_conversations';
 const ACTIVE_GROUPS_KEY = '@flowgroups_active_groups';
 const ARCHIVED_GROUPS_KEY = '@flowgroups_archived_groups';
 
@@ -73,217 +72,13 @@ export const StorageService = {
 
   async clearAll(): Promise<void> {
     try {
-      await AsyncStorage.multiRemove([MESSAGES_KEY, SETTINGS_KEY, CONVERSATIONS_KEY, ACTIVE_GROUPS_KEY, ARCHIVED_GROUPS_KEY]);
+      await AsyncStorage.multiRemove([MESSAGES_KEY, SETTINGS_KEY, ACTIVE_GROUPS_KEY, ARCHIVED_GROUPS_KEY]);
     } catch (e) {
       console.error('Failed to clear storage:', e);
     }
   },
 
-  // Conversation management methods
-  async saveConversations(conversations: Conversation[]): Promise<void> {
-    try {
-      const jsonValue = JSON.stringify(conversations);
-      await AsyncStorage.setItem(CONVERSATIONS_KEY, jsonValue);
-    } catch (e) {
-      console.error('Failed to save conversations:', e);
-    }
-  },
 
-  async loadConversations(): Promise<Conversation[]> {
-    try {
-      const jsonValue = await AsyncStorage.getItem(CONVERSATIONS_KEY);
-      if (jsonValue != null) {
-        const conversations = JSON.parse(jsonValue);
-        return conversations.map((conv: any) => ({
-          ...conv,
-          lastActivity: new Date(conv.lastActivity),
-          lastMessage: conv.lastMessage ? {
-            ...conv.lastMessage,
-            timestamp: new Date(conv.lastMessage.timestamp),
-            deliveryTime: conv.lastMessage.deliveryTime ? new Date(conv.lastMessage.deliveryTime) : undefined,
-            editedAt: conv.lastMessage.editedAt ? new Date(conv.lastMessage.editedAt) : undefined,
-            reactions: conv.lastMessage.reactions?.map((r: any) => ({
-              ...r,
-              timestamp: new Date(r.timestamp),
-            })),
-            attachments: conv.lastMessage.attachments || undefined,
-          } : undefined,
-          messages: conv.messages.map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp),
-            deliveryTime: msg.deliveryTime ? new Date(msg.deliveryTime) : undefined,
-            editedAt: msg.editedAt ? new Date(msg.editedAt) : undefined,
-            reactions: msg.reactions?.map((r: any) => ({
-              ...r,
-              timestamp: new Date(r.timestamp),
-            })),
-            attachments: msg.attachments || undefined,
-          })),
-        }));
-      }
-      return this.getDefaultConversations();
-    } catch (e) {
-      console.error('Failed to load conversations:', e);
-      return this.getDefaultConversations();
-    }
-  },
-
-  async loadConversation(conversationId: string): Promise<Conversation | null> {
-    const conversations = await this.loadConversations();
-    return conversations.find(conv => conv.id === conversationId) || null;
-  },
-
-  async saveConversation(conversation: Conversation): Promise<void> {
-    try {
-      const conversations = await this.loadConversations();
-      const index = conversations.findIndex(conv => conv.id === conversation.id);
-      
-      if (index >= 0) {
-        conversations[index] = conversation;
-      } else {
-        conversations.push(conversation);
-      }
-      
-      await this.saveConversations(conversations);
-    } catch (e) {
-      console.error('Failed to save conversation:', e);
-    }
-  },
-
-  async markConversationAsRead(conversationId: string): Promise<void> {
-    try {
-      const conversations = await this.loadConversations();
-      const conversation = conversations.find(conv => conv.id === conversationId);
-      
-      if (conversation) {
-        conversation.unreadCount = 0;
-        await this.saveConversations(conversations);
-      }
-    } catch (e) {
-      console.error('Failed to mark conversation as read:', e);
-    }
-  },
-
-  getDefaultConversations(): Conversation[] {
-    return [
-      {
-        id: '1',
-        title: '田中さん',
-        participants: [
-          { id: 'tanaka', name: '田中さん' },
-          { id: 'you', name: 'あなた' },
-        ],
-        lastActivity: new Date(Date.now() - 1000 * 60),
-        unreadCount: 2,
-        messages: [
-          {
-            id: '1',
-            text: 'こんにちは！',
-            timestamp: new Date(Date.now() - 1000 * 60 * 5),
-            isOwnMessage: false,
-            sender: '田中さん',
-            status: 'read' as MessageStatus,
-          },
-          {
-            id: '2',
-            text: 'お疲れ様です。今日はいい天気ですね。',
-            timestamp: new Date(Date.now() - 1000 * 60 * 3),
-            isOwnMessage: true,
-            sender: 'あなた',
-            status: 'read' as MessageStatus,
-          },
-          {
-            id: '3',
-            text: 'そうですね！散歩日和です。',
-            timestamp: new Date(Date.now() - 1000 * 60),
-            isOwnMessage: false,
-            sender: '田中さん',
-            status: 'read' as MessageStatus,
-          },
-        ],
-        lastMessage: {
-          id: '3',
-          text: 'そうですね！散歩日和です。',
-          timestamp: new Date(Date.now() - 1000 * 60),
-          isOwnMessage: false,
-          sender: '田中さん',
-          status: 'read' as MessageStatus,
-        },
-      },
-      {
-        id: '2',
-        title: '佐藤さん',
-        participants: [
-          { id: 'sato', name: '佐藤さん' },
-          { id: 'you', name: 'あなた' },
-        ],
-        lastActivity: new Date(Date.now() - 1000 * 60 * 30),
-        unreadCount: 0,
-        messages: [
-          {
-            id: '4',
-            text: 'プロジェクトの件でご相談があります。',
-            timestamp: new Date(Date.now() - 1000 * 60 * 45),
-            isOwnMessage: false,
-            sender: '佐藤さん',
-            status: 'read' as MessageStatus,
-          },
-          {
-            id: '5',
-            text: 'はい、どのような件でしょうか？',
-            timestamp: new Date(Date.now() - 1000 * 60 * 30),
-            isOwnMessage: true,
-            sender: 'あなた',
-            status: 'read' as MessageStatus,
-          },
-        ],
-        lastMessage: {
-          id: '5',
-          text: 'はい、どのような件でしょうか？',
-          timestamp: new Date(Date.now() - 1000 * 60 * 30),
-          isOwnMessage: true,
-          sender: 'あなた',
-          status: 'read' as MessageStatus,
-        },
-      },
-      {
-        id: '3',
-        title: 'チームグループ',
-        participants: [
-          { id: 'team', name: 'チームグループ' },
-          { id: 'you', name: 'あなた' },
-        ],
-        lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 2),
-        unreadCount: 5,
-        messages: [
-          {
-            id: '6',
-            text: '来週のミーティングの件で連絡します。',
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3),
-            isOwnMessage: false,
-            sender: 'チームリーダー',
-            status: 'read' as MessageStatus,
-          },
-          {
-            id: '7',
-            text: '了解しました。',
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-            isOwnMessage: true,
-            sender: 'あなた',
-            status: 'read' as MessageStatus,
-          },
-        ],
-        lastMessage: {
-          id: '7',
-          text: '了解しました。',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-          isOwnMessage: true,
-          sender: 'あなた',
-          status: 'read' as MessageStatus,
-        },
-      },
-    ];
-  },
 
   // Group management methods
   async saveActiveGroups(groups: Group[]): Promise<void> {

@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npm init:*)",
+      "Bash(npx create-expo-app:*)",
+      "Bash(npm start)",
+      "Bash(npx expo install:*)",
+      "Read(//c/Users/mryot/Downloads/Phone Link/**)",
+      "Bash(npx expo start:*)",
+      "Bash(npx kill-port:*)",
+      "Bash(timeout:*)",
+      "Bash(netsh:*)",
+      "Bash(start http://localhost:8082)",
+      "Bash(start http://localhost:8081)",
+      "Bash(dir:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

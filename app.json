@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "FlowGroups",
+    "slug": "flowgroups",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "backgroundColor": "#FFFFFF"
+    },
+    "web": {},
+    "plugins": [
+      "expo-asset"
+    ]
+  }
+}

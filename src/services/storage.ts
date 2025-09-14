@@ -1,0 +1,594 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Message, FlowGroupsSettings, Conversation, MessageStatus, Group, GroupLifespan, GroupStatus, DisbandReason } from '../types';
+
+const MESSAGES_KEY = '@flowgroups_messages';
+const SETTINGS_KEY = '@flowgroups_settings';
+const CONVERSATIONS_KEY = '@flowgroups_conversations';
+const ACTIVE_GROUPS_KEY = '@flowgroups_active_groups';
+const ARCHIVED_GROUPS_KEY = '@flowgroups_archived_groups';
+
+export const StorageService = {
+  async saveMessages(messages: Message[]): Promise<void> {
+    try {
+      const jsonValue = JSON.stringify(messages);
+      await AsyncStorage.setItem(MESSAGES_KEY, jsonValue);
+    } catch (e) {
+      console.error('Failed to save messages:', e);
+    }
+  },
+
+  async loadMessages(): Promise<Message[]> {
+    try {
+      const jsonValue = await AsyncStorage.getItem(MESSAGES_KEY);
+      if (jsonValue != null) {
+        const messages = JSON.parse(jsonValue);
+        return messages.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+          deliveryTime: msg.deliveryTime ? new Date(msg.deliveryTime) : undefined,
+          editedAt: msg.editedAt ? new Date(msg.editedAt) : undefined,
+          reactions: msg.reactions?.map((r: any) => ({
+            ...r,
+            timestamp: new Date(r.timestamp),
+          })),
+          attachments: msg.attachments || undefined,
+        }));
+      }
+      return [];
+    } catch (e) {
+      console.error('Failed to load messages:', e);
+      return [];
+    }
+  },
+
+  async saveSettings(settings: FlowGroupsSettings): Promise<void> {
+    try {
+      const jsonValue = JSON.stringify(settings);
+      await AsyncStorage.setItem(SETTINGS_KEY, jsonValue);
+    } catch (e) {
+      console.error('Failed to save settings:', e);
+    }
+  },
+
+  async loadSettings(): Promise<FlowGroupsSettings> {
+    try {
+      const jsonValue = await AsyncStorage.getItem(SETTINGS_KEY);
+      if (jsonValue != null) {
+        return JSON.parse(jsonValue);
+      }
+    } catch (e) {
+      console.error('Failed to load settings:', e);
+    }
+    
+    return {
+      theme: 'light',
+      enableHaptics: true,
+      enableTypingIndicator: true,
+      defaultGroupLifespan: '24_hours',
+      showExpirationWarnings: true,
+      archiveRetentionDays: 30,
+      autoJoinSuggestions: false,
+    };
+  },
+
+  async clearAll(): Promise<void> {
+    try {
+      await AsyncStorage.multiRemove([MESSAGES_KEY, SETTINGS_KEY, CONVERSATIONS_KEY, ACTIVE_GROUPS_KEY, ARCHIVED_GROUPS_KEY]);
+    } catch (e) {
+      console.error('Failed to clear storage:', e);
+    }
+  },
+
+  // Conversation management methods
+  async saveConversations(conversations: Conversation[]): Promise<void> {
+    try {
+      const jsonValue = JSON.stringify(conversations);
+      await AsyncStorage.setItem(CONVERSATIONS_KEY, jsonValue);
+    } catch (e) {
+      console.error('Failed to save conversations:', e);
+    }
+  },
+
+  async loadConversations(): Promise<Conversation[]> {
+    try {
+      const jsonValue = await AsyncStorage.getItem(CONVERSATIONS_KEY);
+      if (jsonValue != null) {
+        const conversations = JSON.parse(jsonValue);
+        return conversations.map((conv: any) => ({
+          ...conv,
+          lastActivity: new Date(conv.lastActivity),
+          lastMessage: conv.lastMessage ? {
+            ...conv.lastMessage,
+            timestamp: new Date(conv.lastMessage.timestamp),
+            deliveryTime: conv.lastMessage.deliveryTime ? new Date(conv.lastMessage.deliveryTime) : undefined,
+            editedAt: conv.lastMessage.editedAt ? new Date(conv.lastMessage.editedAt) : undefined,
+            reactions: conv.lastMessage.reactions?.map((r: any) => ({
+              ...r,
+              timestamp: new Date(r.timestamp),
+            })),
+            attachments: conv.lastMessage.attachments || undefined,
+          } : undefined,
+          messages: conv.messages.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp),
+            deliveryTime: msg.deliveryTime ? new Date(msg.deliveryTime) : undefined,
+            editedAt: msg.editedAt ? new Date(msg.editedAt) : undefined,
+            reactions: msg.reactions?.map((r: any) => ({
+              ...r,
+              timestamp: new Date(r.timestamp),
+            })),
+            attachments: msg.attachments || undefined,
+          })),
+        }));
+      }
+      return this.getDefaultConversations();
+    } catch (e) {
+      console.error('Failed to load conversations:', e);
+      return this.getDefaultConversations();
+    }
+  },
+
+  async loadConversation(conversationId: string): Promise<Conversation | null> {
+    const conversations = await this.loadConversations();
+    return conversations.find(conv => conv.id === conversationId) || null;
+  },
+
+  async saveConversation(conversation: Conversation): Promise<void> {
+    try {
+      const conversations = await this.loadConversations();
+      const index = conversations.findIndex(conv => conv.id === conversation.id);
+      
+      if (index >= 0) {
+        conversations[index] = conversation;
+      } else {
+        conversations.push(conversation);
+      }
+      
+      await this.saveConversations(conversations);
+    } catch (e) {
+      console.error('Failed to save conversation:', e);
+    }
+  },
+
+  async markConversationAsRead(conversationId: string): Promise<void> {
+    try {
+      const conversations = await this.loadConversations();
+      const conversation = conversations.find(conv => conv.id === conversationId);
+      
+      if (conversation) {
+        conversation.unreadCount = 0;
+        await this.saveConversations(conversations);
+      }
+    } catch (e) {
+      console.error('Failed to mark conversation as read:', e);
+    }
+  },
+
+  getDefaultConversations(): Conversation[] {
+    return [
+      {
+        id: '1',
+        title: '田中さん',
+        participants: [
+          { id: 'tanaka', name: '田中さん' },
+          { id: 'you', name: 'あなた' },
+        ],
+        lastActivity: new Date(Date.now() - 1000 * 60),
+        unreadCount: 2,
+        messages: [
+          {
+            id: '1',
+            text: 'こんにちは！',
+            timestamp: new Date(Date.now() - 1000 * 60 * 5),
+            isOwnMessage: false,
+            sender: '田中さん',
+            status: 'read' as MessageStatus,
+          },
+          {
+            id: '2',
+            text: 'お疲れ様です。今日はいい天気ですね。',
+            timestamp: new Date(Date.now() - 1000 * 60 * 3),
+            isOwnMessage: true,
+            sender: 'あなた',
+            status: 'read' as MessageStatus,
+          },
+          {
+            id: '3',
+            text: 'そうですね！散歩日和です。',
+            timestamp: new Date(Date.now() - 1000 * 60),
+            isOwnMessage: false,
+            sender: '田中さん',
+            status: 'read' as MessageStatus,
+          },
+        ],
+        lastMessage: {
+          id: '3',
+          text: 'そうですね！散歩日和です。',
+          timestamp: new Date(Date.now() - 1000 * 60),
+          isOwnMessage: false,
+          sender: '田中さん',
+          status: 'read' as MessageStatus,
+        },
+      },
+      {
+        id: '2',
+        title: '佐藤さん',
+        participants: [
+          { id: 'sato', name: '佐藤さん' },
+          { id: 'you', name: 'あなた' },
+        ],
+        lastActivity: new Date(Date.now() - 1000 * 60 * 30),
+        unreadCount: 0,
+        messages: [
+          {
+            id: '4',
+            text: 'プロジェクトの件でご相談があります。',
+            timestamp: new Date(Date.now() - 1000 * 60 * 45),
+            isOwnMessage: false,
+            sender: '佐藤さん',
+            status: 'read' as MessageStatus,
+          },
+          {
+            id: '5',
+            text: 'はい、どのような件でしょうか？',
+            timestamp: new Date(Date.now() - 1000 * 60 * 30),
+            isOwnMessage: true,
+            sender: 'あなた',
+            status: 'read' as MessageStatus,
+          },
+        ],
+        lastMessage: {
+          id: '5',
+          text: 'はい、どのような件でしょうか？',
+          timestamp: new Date(Date.now() - 1000 * 60 * 30),
+          isOwnMessage: true,
+          sender: 'あなた',
+          status: 'read' as MessageStatus,
+        },
+      },
+      {
+        id: '3',
+        title: 'チームグループ',
+        participants: [
+          { id: 'team', name: 'チームグループ' },
+          { id: 'you', name: 'あなた' },
+        ],
+        lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 2),
+        unreadCount: 5,
+        messages: [
+          {
+            id: '6',
+            text: '来週のミーティングの件で連絡します。',
+            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3),
+            isOwnMessage: false,
+            sender: 'チームリーダー',
+            status: 'read' as MessageStatus,
+          },
+          {
+            id: '7',
+            text: '了解しました。',
+            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
+            isOwnMessage: true,
+            sender: 'あなた',
+            status: 'read' as MessageStatus,
+          },
+        ],
+        lastMessage: {
+          id: '7',
+          text: '了解しました。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
+          isOwnMessage: true,
+          sender: 'あなた',
+          status: 'read' as MessageStatus,
+        },
+      },
+    ];
+  },
+
+  // Group management methods
+  async saveActiveGroups(groups: Group[]): Promise<void> {
+    try {
+      const jsonValue = JSON.stringify(groups);
+      await AsyncStorage.setItem(ACTIVE_GROUPS_KEY, jsonValue);
+    } catch (e) {
+      console.error('Failed to save active groups:', e);
+    }
+  },
+
+  async saveArchivedGroups(groups: Group[]): Promise<void> {
+    try {
+      const jsonValue = JSON.stringify(groups);
+      await AsyncStorage.setItem(ARCHIVED_GROUPS_KEY, jsonValue);
+    } catch (e) {
+      console.error('Failed to save archived groups:', e);
+    }
+  },
+
+  async loadGroups(): Promise<{ active: Group[], archived: Group[] }> {
+    try {
+      const activeJson = await AsyncStorage.getItem(ACTIVE_GROUPS_KEY);
+      const archivedJson = await AsyncStorage.getItem(ARCHIVED_GROUPS_KEY);
+      
+      const parseGroups = (jsonValue: string | null): Group[] => {
+        if (!jsonValue) return [];
+        const groups = JSON.parse(jsonValue);
+        return groups.map((group: any) => ({
+          ...group,
+          createdAt: new Date(group.createdAt),
+          lastActivity: new Date(group.lastActivity),
+          settings: {
+            ...group.settings,
+            expirationTime: new Date(group.settings.expirationTime),
+          },
+          disbandedAt: group.disbandedAt ? new Date(group.disbandedAt) : undefined,
+          archivedUntil: group.archivedUntil ? new Date(group.archivedUntil) : undefined,
+          lastMessage: group.lastMessage ? {
+            ...group.lastMessage,
+            timestamp: new Date(group.lastMessage.timestamp),
+            deliveryTime: group.lastMessage.deliveryTime ? new Date(group.lastMessage.deliveryTime) : undefined,
+            editedAt: group.lastMessage.editedAt ? new Date(group.lastMessage.editedAt) : undefined,
+            reactions: group.lastMessage.reactions?.map((r: any) => ({
+              ...r,
+              timestamp: new Date(r.timestamp),
+            })),
+            attachments: group.lastMessage.attachments || undefined,
+          } : undefined,
+          messages: group.messages.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp),
+            deliveryTime: msg.deliveryTime ? new Date(msg.deliveryTime) : undefined,
+            editedAt: msg.editedAt ? new Date(msg.editedAt) : undefined,
+            reactions: msg.reactions?.map((r: any) => ({
+              ...r,
+              timestamp: new Date(r.timestamp),
+            })),
+            attachments: msg.attachments || undefined,
+          })),
+        }));
+      };
+      
+      const active = parseGroups(activeJson);
+      const archived = parseGroups(archivedJson);
+      
+      // Clean up old archived groups
+      const now = new Date();
+      const filteredArchived = archived.filter(g => 
+        !g.archivedUntil || g.archivedUntil.getTime() > now.getTime()
+      );
+      
+      if (filteredArchived.length !== archived.length) {
+        await this.saveArchivedGroups(filteredArchived);
+      }
+      
+      return { active: active.length > 0 ? active : this.getDefaultGroups(), archived: filteredArchived };
+    } catch (e) {
+      console.error('Failed to load groups:', e);
+      return { active: this.getDefaultGroups(), archived: [] };
+    }
+  },
+
+  async processExpiredGroups(): Promise<void> {
+    try {
+      const { active, archived } = await this.loadGroups();
+      const now = new Date();
+      
+      const stillActive: Group[] = [];
+      const newlyArchived: Group[] = [];
+      
+      for (const group of active) {
+        const isExpired = group.settings.expirationTime.getTime() <= now.getTime();
+        const isInactive = group.settings.inactivityThreshold && 
+          (now.getTime() - group.lastActivity.getTime()) > (group.settings.inactivityThreshold * 24 * 60 * 60 * 1000);
+        const hasReachedMessageLimit = group.settings.messageLimit && 
+          group.messageCount >= group.settings.messageLimit;
+        
+        if (isExpired || isInactive || hasReachedMessageLimit) {
+          const archivedGroup: Group = {
+            ...group,
+            status: 'archived',
+            disbandedAt: now,
+            disbandReason: isExpired ? 'time_expired' : isInactive ? 'inactivity' : 'message_limit',
+            archivedUntil: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000), // Keep for 30 days
+          };
+          newlyArchived.push(archivedGroup);
+        } else {
+          // Update status if expiring soon (< 10% time remaining)
+          const totalTime = group.settings.expirationTime.getTime() - group.createdAt.getTime();
+          const remainingTime = group.settings.expirationTime.getTime() - now.getTime();
+          const percentRemaining = remainingTime / totalTime;
+          
+          if (percentRemaining < 0.1 && group.status !== 'expiring_soon') {
+            group.status = 'expiring_soon';
+          }
+          stillActive.push(group);
+        }
+      }
+      
+      if (newlyArchived.length > 0) {
+        await this.saveActiveGroups(stillActive);
+        await this.saveArchivedGroups([...archived, ...newlyArchived]);
+      }
+    } catch (e) {
+      console.error('Failed to process expired groups:', e);
+    }
+  },
+
+  async loadGroup(groupId: string): Promise<Group | null> {
+    const { active, archived } = await this.loadGroups();
+    return [...active, ...archived].find(group => group.id === groupId) || null;
+  },
+
+  async saveGroup(group: Group): Promise<void> {
+    try {
+      const { active, archived } = await this.loadGroups();
+      
+      if (group.status === 'archived') {
+        const index = archived.findIndex(g => g.id === group.id);
+        if (index >= 0) {
+          archived[index] = group;
+        } else {
+          archived.push(group);
+        }
+        await this.saveArchivedGroups(archived);
+      } else {
+        const index = active.findIndex(g => g.id === group.id);
+        if (index >= 0) {
+          active[index] = group;
+        } else {
+          active.push(group);
+        }
+        await this.saveActiveGroups(active);
+      }
+    } catch (e) {
+      console.error('Failed to save group:', e);
+    }
+  },
+
+  async createGroup(name: string, description: string, lifespan: GroupLifespan, expirationTime: Date): Promise<Group> {
+    const newGroup: Group = {
+      id: Date.now().toString(),
+      name,
+      description,
+      members: [
+        { id: 'you', name: 'あなた' },
+      ],
+      createdAt: new Date(),
+      createdBy: 'you',
+      lastActivity: new Date(),
+      unreadCount: 0,
+      messages: [],
+      status: 'active',
+      settings: {
+        lifespan,
+        expirationTime,
+        warnBeforeExpiry: true,
+        allowExtension: false,
+      },
+      messageCount: 0,
+    };
+
+    await this.saveGroup(newGroup);
+    return newGroup;
+  },
+
+  async markGroupAsRead(groupId: string): Promise<void> {
+    try {
+      const { active } = await this.loadGroups();
+      const group = active.find(g => g.id === groupId);
+      
+      if (group) {
+        group.unreadCount = 0;
+        await this.saveActiveGroups(active);
+      }
+    } catch (e) {
+      console.error('Failed to mark group as read:', e);
+    }
+  },
+
+  getDefaultGroups(): Group[] {
+    const now = new Date();
+    return [
+      {
+        id: 'group-1',
+        name: 'サンプル：週次ミーティング',
+        description: '1週間で自動解散するグループの例',
+        members: [
+          { id: 'you', name: 'あなた' },
+          { id: 'tanaka', name: '田中さん' },
+          { id: 'sato', name: '佐藤さん' },
+          { id: 'yamada', name: '山田さん' },
+        ],
+        createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
+        createdBy: 'tanaka',
+        lastActivity: new Date(now.getTime() - 1000 * 60 * 30),
+        unreadCount: 3,
+        status: 'active',
+        settings: {
+          lifespan: '7_days',
+          expirationTime: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 5), // 5 days remaining
+          warnBeforeExpiry: true,
+          allowExtension: false,
+        },
+        messageCount: 2,
+        messages: [
+          {
+            id: 'g1-1',
+            text: '今週のミーティングの議題を共有します。',
+            timestamp: new Date(now.getTime() - 1000 * 60 * 45),
+            isOwnMessage: false,
+            sender: '田中さん',
+            status: 'read' as MessageStatus,
+            readBy: ['you', 'sato', 'yamada'],
+          },
+          {
+            id: 'g1-2',
+            text: 'ありがとうございます。確認します。',
+            timestamp: new Date(now.getTime() - 1000 * 60 * 30),
+            isOwnMessage: true,
+            sender: 'あなた',
+            status: 'read' as MessageStatus,
+            readBy: ['tanaka', 'sato'],
+          },
+        ],
+        lastMessage: {
+          id: 'g1-2',
+          text: 'ありがとうございます。確認します。',
+          timestamp: new Date(now.getTime() - 1000 * 60 * 30),
+          isOwnMessage: true,
+          sender: 'あなた',
+          status: 'read' as MessageStatus,
+        },
+      },
+      {
+        id: 'group-2',
+        name: 'サンプル：今日のランチ',
+        description: '24時間で解散する短期グループの例',
+        members: [
+          { id: 'you', name: 'あなた' },
+          { id: 'suzuki', name: '鈴木さん' },
+          { id: 'ito', name: '伊藤さん' },
+        ],
+        createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 3), // 3 hours ago
+        createdBy: 'suzuki',
+        lastActivity: new Date(now.getTime() - 1000 * 60 * 60 * 2),
+        unreadCount: 0,
+        status: 'active',
+        settings: {
+          lifespan: '24_hours',
+          expirationTime: new Date(now.getTime() + 1000 * 60 * 60 * 21), // 21 hours remaining
+          warnBeforeExpiry: true,
+          allowExtension: false,
+        },
+        messageCount: 2,
+        messages: [
+          {
+            id: 'g2-1',
+            text: '12時にロビーで集合しましょう！',
+            timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 3),
+            isOwnMessage: false,
+            sender: '鈴木さん',
+            status: 'read' as MessageStatus,
+            readBy: ['you', 'ito'],
+          },
+          {
+            id: 'g2-2',
+            text: '了解です！',
+            timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 2),
+            isOwnMessage: false,
+            sender: '伊藤さん',
+            status: 'read' as MessageStatus,
+            readBy: ['you'],
+          },
+        ],
+        lastMessage: {
+          id: 'g2-2',
+          text: '了解です！',
+          timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 2),
+          isOwnMessage: false,
+          sender: '伊藤さん',
+          status: 'read' as MessageStatus,
+        },
+      },
+    ];
+  },
+};

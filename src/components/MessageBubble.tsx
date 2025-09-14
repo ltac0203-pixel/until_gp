@@ -5,7 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import BootstrapIcon from 'react-native-bootstrap-icons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { Message, MessageStatus } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../utils/themes';
@@ -32,12 +32,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   const getStatusIcon = (status?: MessageStatus, color?: string) => {
     switch (status) {
-      case 'pending': return <BootstrapIcon name="clock" size={12} color={color} />;
-      case 'sending': return <BootstrapIcon name="arrow-up-right" size={12} color={color} />;
-      case 'sent': return <BootstrapIcon name="check" size={12} color={color} />;
-      case 'delivered': return <BootstrapIcon name="check-all" size={12} color={color} />;
-      case 'read': return <BootstrapIcon name="eye" size={12} color={color} />;
-      case 'failed': return <BootstrapIcon name="exclamation-triangle" size={12} color={color} />;
+      case 'pending': return <Icon name="time-outline" size={12} color={color} />;
+      case 'sending': return <Icon name="arrow-up" size={12} color={color} />;
+      case 'sent': return <Icon name="checkmark" size={12} color={color} />;
+      case 'delivered': return <Icon name="checkmark-done" size={12} color={color} />;
+      case 'read': return <Icon name="eye" size={12} color={color} />;
+      case 'failed': return <Icon name="alert-circle" size={12} color={color} />;
       default: return null;
     }
   };

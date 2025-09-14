@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Text,
 } from 'react-native';
-import BootstrapIcon from 'react-native-bootstrap-icons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { Attachment } from '../types';
 import { MediaStorageService } from '../services/mediaStorage';
 
@@ -40,14 +40,14 @@ export const MediaPreview: React.FC<MediaPreviewProps> = ({
             />
             {attachment.type === 'video' && (
               <View style={styles.videoIndicator}>
-                <BootstrapIcon name="play-circle" size={24} color="white" />
+                <Icon name="play-circle" size={24} color="white" />
               </View>
             )}
             <TouchableOpacity
               style={styles.removeButton}
               onPress={() => onRemoveAttachment(attachment.id)}
             >
-              <BootstrapIcon name="x-circle" size={20} color="white" />
+              <Icon name="close-circle" size={20} color="white" />
             </TouchableOpacity>
             {attachment.fileSize && (
               <View style={styles.sizeLabel}>

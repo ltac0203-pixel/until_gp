@@ -6,7 +6,7 @@ import {
   Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import BootstrapIcon from 'react-native-bootstrap-icons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { Attachment } from '../types';
 
 interface MediaPickerProps {
@@ -119,7 +119,7 @@ export const MediaPicker: React.FC<MediaPickerProps> = ({
       onPress={showMediaOptions}
       style={{ padding: 8 }}
     >
-      <BootstrapIcon name="paperclip" size={24} color={color} />
+      <Icon name="attach" size={24} color={color} />
     </TouchableOpacity>
   );
 };

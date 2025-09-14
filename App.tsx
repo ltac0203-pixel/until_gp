@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View, Text, Platform, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
-import BootstrapIcon from 'react-native-bootstrap-icons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import HomeScreen from './src/screens/HomeScreen';
 import CreateGroupScreen from './src/screens/CreateGroupScreen';
 import ArchiveScreen from './src/screens/ArchiveScreen';
@@ -42,7 +42,7 @@ const TabIcon: React.FC<{ focused: boolean; iconName: string; label: string }> =
         styles.tabIconWrapper,
         { transform: [{ scale: focused ? 1.1 : 1 }] }
       ]}>
-        <BootstrapIcon
+        <Icon
           name={iconName}
           size={24}
           color={focused ? colors.primary : colors.textSecondary}
@@ -98,7 +98,7 @@ const MainTabs: React.FC = () => {
         component={HomeScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} iconName="house" label="ホーム" />
+            <TabIcon focused={focused} iconName="home" label="ホーム" />
           ),
         }}
       />
@@ -107,7 +107,7 @@ const MainTabs: React.FC = () => {
         component={CreateGroupScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} iconName="plus-circle" label="作成" />
+            <TabIcon focused={focused} iconName="add-circle" label="作成" />
           ),
         }}
       />
@@ -116,7 +116,7 @@ const MainTabs: React.FC = () => {
         component={ArchiveScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} iconName="archive" label="アーカイブ" />
+            <TabIcon focused={focused} iconName="archive-outline" label="アーカイブ" />
           ),
         }}
       />
@@ -125,7 +125,7 @@ const MainTabs: React.FC = () => {
         component={SettingsScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} iconName="gear" label="設定" />
+            <TabIcon focused={focused} iconName="settings" label="設定" />
           ),
         }}
       />

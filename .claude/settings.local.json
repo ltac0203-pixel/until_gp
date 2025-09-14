@@ -24,7 +24,9 @@
       "Bash(git push:*)",
       "Bash(del \"C:\\product\\until_gp\\src\\screens\\ChatListScreen.tsx\")",
       "Bash(del \"C:\\product\\until_gp\\src\\screens\\ChatScreen.tsx\")",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(del \"C:\\product\\until_gp\\src\\types\\react-native-bootstrap-icons.d.ts\")"
     ],
     "deny": [],
     "ask": []

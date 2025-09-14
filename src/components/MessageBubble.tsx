@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import BootstrapIcon from 'react-native-bootstrap-icons';
 import { Message, MessageStatus } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../utils/themes';
@@ -29,15 +30,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     });
   };
 
-  const getStatusIcon = (status?: MessageStatus) => {
+  const getStatusIcon = (status?: MessageStatus, color?: string) => {
     switch (status) {
-      case 'pending': return '⏱';
-      case 'sending': return '↗️';
-      case 'sent': return '✓';
-      case 'delivered': return '✓✓';
-      case 'read': return '👁';
-      case 'failed': return '❌';
-      default: return '';
+      case 'pending': return <BootstrapIcon name="clock" size={12} color={color} />;
+      case 'sending': return <BootstrapIcon name="arrow-up-right" size={12} color={color} />;
+      case 'sent': return <BootstrapIcon name="check" size={12} color={color} />;
+      case 'delivered': return <BootstrapIcon name="check-all" size={12} color={color} />;
+      case 'read': return <BootstrapIcon name="eye" size={12} color={color} />;
+      case 'failed': return <BootstrapIcon name="exclamation-triangle" size={12} color={color} />;
+      default: return null;
     }
   };
 
@@ -122,9 +123,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           {formatTime(message.timestamp)}
         </Text>
         {message.isOwnMessage && message.status && (
-          <Text style={[styles.statusIcon, { color: getStatusColor(message.status) }]}>
-            {getStatusIcon(message.status)}
-          </Text>
+          <View style={styles.statusIcon}>
+            {getStatusIcon(message.status, getStatusColor(message.status))}
+          </View>
         )}
         {message.readBy && message.readBy.length > 0 && (
           <Text style={[styles.readStatusText, { color: colors.statusRead }]}>

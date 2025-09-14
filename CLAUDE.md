@@ -98,3 +98,57 @@ Components follow these conventions:
 - Groups transition to "expiring soon" state at 10% remaining lifetime
 - Archived groups retained for 30 days for reference
 - Members receive notifications at key lifecycle events
+
+## Media Handling
+
+The application supports image and video attachments in messages:
+- **MediaStorage Service** (`services/mediaStorage.ts`) handles media file operations
+- **Media Components**:
+  - `MediaPicker`: Image/video selection from gallery
+  - `MediaPreview`: Pre-send media preview with removal option
+  - `MediaDisplay`: In-message media rendering with fullscreen view
+- **Attachment Types**: Images and videos with metadata (dimensions, duration, thumbnails)
+
+## Navigation Structure
+
+**Stack Navigator (Root):**
+- MainTabs
+- GroupChat
+
+**Tab Navigator (MainTabs):**
+- Home: Active groups list
+- Create: New group creation
+- Archive: Past groups (read-only)
+- Settings: App preferences
+
+Navigation types are defined in `App.tsx` as `RootStackParamList` and `TabParamList`.
+
+## Key Services
+
+**StorageService (`services/storage.ts`):**
+- `loadGroups()`: Retrieves active and archived groups
+- `saveGroup()`: Persists group changes
+- `processExpiredGroups()`: Handles group lifecycle transitions
+- `createGroup()`: Creates new ephemeral group
+- Default sample groups provided on first launch
+
+**Group State Management:**
+- Groups stored with full message history
+- Automatic status updates based on expiration rules
+- Unread count tracking per group
+- Message delivery status tracking
+
+## UI Patterns
+
+**Blur Effects:**
+- Tab bar uses `expo-blur` for glassmorphism effect
+- Platform-specific blur intensity adjustments
+
+**Haptic Feedback:**
+- Message send confirmation
+- Long press actions
+- Button interactions (when enabled in settings)
+
+**Japanese UI:**
+- Tab labels and many UI elements use Japanese text
+- Consider maintaining bilingual support where appropriate

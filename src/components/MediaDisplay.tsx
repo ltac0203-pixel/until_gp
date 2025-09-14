@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
-import { Ionicons } from '@expo/vector-icons';
+import BootstrapIcon from 'react-native-bootstrap-icons';
 import { Attachment } from '../types';
 import { MediaStorageService } from '../services/mediaStorage';
 
@@ -53,7 +53,7 @@ export const MediaDisplay: React.FC<MediaDisplayProps> = ({
               resizeMode={ResizeMode.COVER}
             />
             <View style={styles.playButtonOverlay}>
-              <Ionicons name="play-circle" size={40} color="white" />
+              <BootstrapIcon name="play-circle" size={40} color="white" />
             </View>
             {attachment.duration && (
               <View style={styles.durationBadge}>
@@ -110,7 +110,7 @@ export const MediaDisplay: React.FC<MediaDisplayProps> = ({
             style={styles.closeButton}
             onPress={() => setSelectedMedia(null)}
           >
-            <Ionicons name="close-circle" size={36} color="white" />
+            <BootstrapIcon name="x-circle" size={36} color="white" />
           </TouchableOpacity>
 
           <ScrollView

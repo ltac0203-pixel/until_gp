@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View, Text, Platform, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
+import BootstrapIcon from 'react-native-bootstrap-icons';
 import HomeScreen from './src/screens/HomeScreen';
 import CreateGroupScreen from './src/screens/CreateGroupScreen';
 import ArchiveScreen from './src/screens/ArchiveScreen';
@@ -31,18 +32,22 @@ export type TabParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
-const TabIcon: React.FC<{ focused: boolean; emoji: string; label: string }> = ({ focused, emoji, label }) => {
+const TabIcon: React.FC<{ focused: boolean; iconName: string; label: string }> = ({ focused, iconName, label }) => {
   const { theme } = useTheme();
   const colors = getThemeColors(theme);
 
   return (
     <View style={styles.tabIconContainer}>
-      <Text style={[
-        styles.tabEmoji,
+      <View style={[
+        styles.tabIconWrapper,
         { transform: [{ scale: focused ? 1.1 : 1 }] }
       ]}>
-        {emoji}
-      </Text>
+        <BootstrapIcon
+          name={iconName}
+          size={24}
+          color={focused ? colors.primary : colors.textSecondary}
+        />
+      </View>
       <Text style={[
         styles.tabLabel,
         {
@@ -93,7 +98,7 @@ const MainTabs: React.FC = () => {
         component={HomeScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} emoji="🏠" label="ホーム" />
+            <TabIcon focused={focused} iconName="house" label="ホーム" />
           ),
         }}
       />
@@ -102,7 +107,7 @@ const MainTabs: React.FC = () => {
         component={CreateGroupScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} emoji="✨" label="作成" />
+            <TabIcon focused={focused} iconName="plus-circle" label="作成" />
           ),
         }}
       />
@@ -111,7 +116,7 @@ const MainTabs: React.FC = () => {
         component={ArchiveScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} emoji="📚" label="アーカイブ" />
+            <TabIcon focused={focused} iconName="archive" label="アーカイブ" />
           ),
         }}
       />
@@ -120,7 +125,7 @@ const MainTabs: React.FC = () => {
         component={SettingsScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} emoji="⚙️" label="設定" />
+            <TabIcon focused={focused} iconName="gear" label="設定" />
           ),
         }}
       />
@@ -166,8 +171,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingTop: 8,
   },
-  tabEmoji: {
-    fontSize: 24,
+  tabIconWrapper: {
     marginBottom: 4,
   },
   tabLabel: {

@@ -26,7 +26,11 @@
       "Bash(del \"C:\\product\\until_gp\\src\\screens\\ChatScreen.tsx\")",
       "Bash(rm:*)",
       "Bash(npm uninstall:*)",
-      "Bash(del \"C:\\product\\until_gp\\src\\types\\react-native-bootstrap-icons.d.ts\")"
+      "Bash(del \"C:\\product\\until_gp\\src\\types\\react-native-bootstrap-icons.d.ts\")",
+      "Bash(git checkout:*)",
+      "mcp__ide__getDiagnostics",
+      "Read(//c/Users/mryot/Pictures/iCloud Photos/Photos/**)",
+      "Bash(ipconfig)"
     ],
     "deny": [],
     "ask": []

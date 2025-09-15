@@ -17,6 +17,7 @@ import { StorageService } from '../services/storage';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const SettingsScreen: React.FC = () => {
   const { theme, setTheme } = useTheme();
@@ -102,7 +103,7 @@ const SettingsScreen: React.FC = () => {
       disabled={!onPress}
     >
       <View style={styles.settingRowLeft}>
-        <Text style={styles.settingIcon}>{icon}</Text>
+        <Icon name={icon} size={20} color={colors.text} style={styles.settingIcon} />
         <Text style={[styles.settingLabel, { color: colors.text }]}>{label}</Text>
       </View>
       {value}
@@ -129,7 +130,7 @@ const SettingsScreen: React.FC = () => {
       >
         <SettingSection title="外観">
           <SettingRow
-            icon="🌓"
+            icon="contrast-outline"
             label="テーマ"
             value={
               <View style={styles.themeButtons}>
@@ -145,7 +146,10 @@ const SettingsScreen: React.FC = () => {
                     styles.themeButtonText,
                     { color: theme === 'light' ? colors.primary : colors.textSecondary }
                   ]}>
-                    ☀️ ライト
+                    <View style={styles.themeButtonContent}>
+                      <Icon name="sunny-outline" size={14} color={theme === 'light' ? colors.primary : colors.textSecondary} />
+                      <Text>ライト</Text>
+                    </View>
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -160,7 +164,10 @@ const SettingsScreen: React.FC = () => {
                     styles.themeButtonText,
                     { color: theme === 'dark' ? colors.primary : colors.textSecondary }
                   ]}>
-                    🌙 ダーク
+                    <View style={styles.themeButtonContent}>
+                      <Icon name="moon-outline" size={14} color={theme === 'dark' ? colors.primary : colors.textSecondary} />
+                      <Text>ダーク</Text>
+                    </View>
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -170,7 +177,7 @@ const SettingsScreen: React.FC = () => {
 
         <SettingSection title="グループ設定">
           <SettingRow
-            icon="⏰"
+            icon="timer-outline"
             label="デフォルトの有効期限"
             value={
               <Text style={[styles.settingValue, { color: colors.textSecondary }]}>
@@ -183,7 +190,7 @@ const SettingsScreen: React.FC = () => {
             }
           />
           <SettingRow
-            icon="🔔"
+            icon="notifications-outline"
             label="期限前の通知"
             value={
               <Switch
@@ -194,54 +201,35 @@ const SettingsScreen: React.FC = () => {
               />
             }
           />
-          <SettingRow
-            icon="📚"
-            label="アーカイブ保持期間"
-            value={
-              <Text style={[styles.settingValue, { color: colors.textSecondary }]}>
-                {settings.archiveRetentionDays}日間
-              </Text>
-            }
-          />
         </SettingSection>
 
         <SettingSection title="インタラクション">
           <SettingRow
-            icon="📳"
+            icon="phone-portrait-outline"
             label="触覚フィードバック"
             value={
-              <Switch
-                value={settings.enableHaptics}
-                onValueChange={(value) => handleToggleSetting('enableHaptics', value)}
-                trackColor={{ false: colors.border, true: colors.primary + '80' }}
-                thumbColor={settings.enableHaptics ? colors.primary : '#f4f3f4'}
-              />
+              <View style={styles.hapticRow}>
+                <Switch
+                  value={settings.enableHaptics}
+                  onValueChange={(value) => handleToggleSetting('enableHaptics', value)}
+                  trackColor={{ false: colors.border, true: colors.primary + '80' }}
+                  thumbColor={settings.enableHaptics ? colors.primary : '#f4f3f4'}
+                />
+              </View>
             }
           />
-          <SettingRow
-            icon="✍️"
-            label="タイピングインジケーター"
-            value={
-              <Switch
-                value={settings.enableTypingIndicator}
-                onValueChange={(value) => handleToggleSetting('enableTypingIndicator', value)}
-                trackColor={{ false: colors.border, true: colors.primary + '80' }}
-                thumbColor={settings.enableTypingIndicator ? colors.primary : '#f4f3f4'}
-              />
-            }
-          />
-          <SettingRow
-            icon="🤝"
-            label="グループの自動提案"
-            value={
-              <Switch
-                value={settings.autoJoinSuggestions}
-                onValueChange={(value) => handleToggleSetting('autoJoinSuggestions', value)}
-                trackColor={{ false: colors.border, true: colors.primary + '80' }}
-                thumbColor={settings.autoJoinSuggestions ? colors.primary : '#f4f3f4'}
-              />
-            }
-          />
+          {settings.enableHaptics && (
+            <TouchableOpacity
+              style={[styles.testButton, { backgroundColor: colors.primary + '20' }]}
+              onPress={async () => {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              }}
+            >
+              <Text style={[styles.testButtonText, { color: colors.primary }]}>
+                振動をテスト
+              </Text>
+            </TouchableOpacity>
+          )}
         </SettingSection>
 
         <SettingSection title="データ管理">
@@ -249,9 +237,12 @@ const SettingsScreen: React.FC = () => {
             style={[styles.dangerButton, { backgroundColor: colors.error + '15' }]}
             onPress={handleClearData}
           >
-            <Text style={[styles.dangerButtonText, { color: colors.error }]}>
-              🗑️ すべてのデータをクリア
-            </Text>
+            <View style={styles.dangerButtonContent}>
+              <Icon name="trash-outline" size={20} color={colors.error} />
+              <Text style={[styles.dangerButtonText, { color: colors.error }]}>
+                すべてのデータをクリア
+              </Text>
+            </View>
           </TouchableOpacity>
         </SettingSection>
 
@@ -325,7 +316,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingIcon: {
-    fontSize: 18,
     marginRight: 12,
   },
   settingLabel: {
@@ -351,10 +341,36 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
+  themeButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  hapticRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  testButton: {
+    marginHorizontal: 16,
+    marginVertical: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  testButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
   dangerButton: {
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
+  },
+  dangerButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   dangerButtonText: {
     fontSize: 16,

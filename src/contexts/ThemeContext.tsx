@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Theme, SlowMailSettings } from '../types';
+import { Theme, FlowGroupsSettings } from '../types';
 import { StorageService } from '../services/storage';
 
 interface ThemeContextType {
   theme: Theme;
-  settings: SlowMailSettings;
+  settings: FlowGroupsSettings;
+  setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
-  updateSettings: (settings: Partial<SlowMailSettings>) => void;
+  updateSettings: (settings: Partial<FlowGroupsSettings>) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -24,11 +25,14 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [settings, setSettings] = useState<SlowMailSettings>({
-    deliveryDelay: 5000,
+  const [settings, setSettings] = useState<FlowGroupsSettings>({
     theme: 'light',
     enableHaptics: true,
     enableTypingIndicator: true,
+    defaultGroupLifespan: '24_hours',
+    showExpirationWarnings: true,
+    archiveRetentionDays: 30,
+    autoJoinSuggestions: false,
   });
 
   useEffect(() => {
@@ -45,17 +49,22 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     updateSettings({ theme: newTheme });
   };
 
-  const updateSettings = async (newSettings: Partial<SlowMailSettings>) => {
+  const setTheme = (theme: Theme) => {
+    updateSettings({ theme });
+  };
+
+  const updateSettings = async (newSettings: Partial<FlowGroupsSettings>) => {
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     await StorageService.saveSettings(updated);
   };
 
   return (
-    <ThemeContext.Provider 
-      value={{ 
-        theme: settings.theme, 
+    <ThemeContext.Provider
+      value={{
+        theme: settings.theme,
         settings,
+        setTheme,
         toggleTheme,
         updateSettings,
       }}

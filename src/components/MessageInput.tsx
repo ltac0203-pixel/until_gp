@@ -14,9 +14,15 @@ import { Attachment } from '../types';
 
 interface MessageInputProps {
   onSendMessage: (message: string, attachments?: Attachment[]) => void;
+  showTypingIndicator?: boolean;
+  recipientName?: string;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
+const MessageInput: React.FC<MessageInputProps> = ({
+  onSendMessage,
+  showTypingIndicator,
+  recipientName
+}) => {
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const { theme } = useTheme();

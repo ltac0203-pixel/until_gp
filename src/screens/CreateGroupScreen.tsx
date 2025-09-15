@@ -19,17 +19,15 @@ import { StorageService } from '../services/storage';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 interface CreateGroupScreenProps {
   navigation: any;
 }
 
-const LIFESPAN_OPTIONS: { value: GroupLifespan; label: string; duration: number; emoji: string }[] = [
-  { value: '1_hour', label: '1時間', duration: 60 * 60 * 1000, emoji: '⚡' },
-  { value: '24_hours', label: '24時間', duration: 24 * 60 * 60 * 1000, emoji: '☀️' },
-  { value: '3_days', label: '3日間', duration: 3 * 24 * 60 * 60 * 1000, emoji: '📅' },
-  { value: '7_days', label: '1週間', duration: 7 * 24 * 60 * 60 * 1000, emoji: '📆' },
-  { value: 'custom', label: 'カスタム', duration: 0, emoji: '⚙️' },
+const LIFESPAN_OPTIONS: { value: GroupLifespan; label: string; duration: number; icon: string }[] = [
+  { value: '7_days', label: '1週間', duration: 7 * 24 * 60 * 60 * 1000, icon: 'calendar-outline' },
+  { value: 'custom', label: 'カスタム', duration: 0, icon: 'settings-outline' },
 ];
 
 const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => {
@@ -37,8 +35,8 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
   const colors = getThemeColors(theme);
   const [groupName, setGroupName] = useState('');
   const [groupDescription, setGroupDescription] = useState('');
-  const [selectedLifespan, setSelectedLifespan] = useState<GroupLifespan>('24_hours');
-  const [customDate, setCustomDate] = useState(new Date(Date.now() + 24 * 60 * 60 * 1000));
+  const [selectedLifespan, setSelectedLifespan] = useState<GroupLifespan>('7_days');
+  const [customDate, setCustomDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
@@ -187,7 +185,7 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
                         styles.lifespanContent,
                         selectedLifespan === option.value && { backgroundColor: colors.primary + '20' }
                       ]}>
-                        <Text style={styles.lifespanEmoji}>{option.emoji}</Text>
+                        <Icon name={option.icon} size={24} color={selectedLifespan === option.value ? colors.primary : colors.text} />
                         <Text style={[
                           styles.lifespanLabel,
                           { color: selectedLifespan === option.value ? colors.primary : colors.text }
@@ -200,13 +198,14 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
                 ))}
               </View>
 
+
               {selectedLifespan === 'custom' && (
                 <BlurView intensity={60} tint={theme} style={styles.customDateContainer}>
                   <View style={styles.customDateContent}>
                     <Text style={[styles.customDateLabel, { color: colors.text }]}>
                       解散日時を選択
                     </Text>
-                    <View style={styles.dateTimeButtons}>
+                    <View style={styles.dateTimeRow}>
                       <TouchableOpacity
                         style={[styles.dateTimeButton, { backgroundColor: colors.primary + '15' }]}
                         onPress={() => {
@@ -214,9 +213,12 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
                           setShowDatePicker(true);
                         }}
                       >
-                        <Text style={[styles.dateTimeButtonText, { color: colors.primary }]}>
-                          📅 {customDate.toLocaleDateString('ja-JP')}
-                        </Text>
+                        <View style={styles.dateTimeButtonContent}>
+                          <Icon name="calendar-outline" size={16} color={colors.primary} />
+                          <Text style={[styles.dateTimeButtonText, { color: colors.primary }]}>
+                            {customDate.toLocaleDateString('ja-JP')}
+                          </Text>
+                        </View>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={[styles.dateTimeButton, { backgroundColor: colors.primary + '15' }]}
@@ -225,10 +227,54 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
                           setShowTimePicker(true);
                         }}
                       >
-                        <Text style={[styles.dateTimeButtonText, { color: colors.primary }]}>
-                          🕐 {customDate.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
-                        </Text>
+                        <View style={styles.dateTimeButtonContent}>
+                          <Icon name="time-outline" size={16} color={colors.primary} />
+                          <Text style={[styles.dateTimeButtonText, { color: colors.primary }]}>
+                            {customDate.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
+                          </Text>
+                        </View>
                       </TouchableOpacity>
+                    </View>
+                    <View style={styles.quickDateOptions}>
+                      <Text style={[styles.quickDateLabel, { color: colors.textSecondary }]}>クイック選択:</Text>
+                      <View style={styles.quickDateButtons}>
+                        <TouchableOpacity
+                          style={[styles.quickDateButton, { borderColor: colors.border }]}
+                          onPress={() => {
+                            const tomorrow = new Date();
+                            tomorrow.setDate(tomorrow.getDate() + 1);
+                            tomorrow.setHours(12, 0, 0, 0);
+                            setCustomDate(tomorrow);
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          }}
+                        >
+                          <Text style={[styles.quickDateButtonText, { color: colors.textSecondary }]}>明日</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.quickDateButton, { borderColor: colors.border }]}
+                          onPress={() => {
+                            const weekEnd = new Date();
+                            weekEnd.setDate(weekEnd.getDate() + 7);
+                            weekEnd.setHours(12, 0, 0, 0);
+                            setCustomDate(weekEnd);
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          }}
+                        >
+                          <Text style={[styles.quickDateButtonText, { color: colors.textSecondary }]}>1週間後</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.quickDateButton, { borderColor: colors.border }]}
+                          onPress={() => {
+                            const twoWeeks = new Date();
+                            twoWeeks.setDate(twoWeeks.getDate() + 14);
+                            twoWeeks.setHours(12, 0, 0, 0);
+                            setCustomDate(twoWeeks);
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          }}
+                        >
+                          <Text style={[styles.quickDateButtonText, { color: colors.textSecondary }]}>2週間後</Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </BlurView>
@@ -238,7 +284,7 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
             <View style={styles.infoBox}>
               <BlurView intensity={40} tint={theme} style={styles.infoBlur}>
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoIcon}>💡</Text>
+                  <Icon name="information-circle-outline" size={20} color={colors.textSecondary} style={styles.infoIcon} />
                   <Text style={[styles.infoText, { color: colors.textSecondary }]}>
                     グループは期限が来ると自動的に解散し、アーカイブに保存されます
                   </Text>
@@ -358,9 +404,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   lifespanCard: {
-    width: '30%',
-    aspectRatio: 1,
-    borderRadius: 16,
+    width: '47%',
+    height: 80,
+    borderRadius: 12,
     overflow: 'hidden',
   },
   lifespanCardActive: {
@@ -372,16 +418,14 @@ const styles = StyleSheet.create({
   },
   lifespanContent: {
     flex: 1,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
-  lifespanEmoji: {
-    fontSize: 28,
-    marginBottom: 4,
-  },
   lifespanLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   customDateContainer: {
@@ -398,15 +442,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginBottom: 12,
   },
-  dateTimeButtons: {
+  dateTimeRow: {
     flexDirection: 'row',
     gap: 8,
+    marginBottom: 12,
   },
   dateTimeButton: {
     flex: 1,
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  dateTimeButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   dateTimeButtonText: {
     fontSize: 14,
@@ -427,7 +477,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
   },
   infoIcon: {
-    fontSize: 20,
     marginRight: 12,
   },
   infoText: {
@@ -454,6 +503,30 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+  },
+  quickDateOptions: {
+    marginTop: 4,
+  },
+  quickDateLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  quickDateButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  quickDateButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  quickDateButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
 

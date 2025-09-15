@@ -24,6 +24,9 @@ export const colors = {
     primaryDark: '#2BA5DB',
     accent: '#FF6B6B',
     success: '#4CAF50',
+    warning: '#FFA500',
+    error: '#F44336',
+    errorLight: '#FFEBEE',
     disabled: '#D1D5DB',
   },
   dark: {
@@ -49,6 +52,9 @@ export const colors = {
     primaryDark: '#2BA5DB',
     accent: '#FF6B6B',
     success: '#32D74B',
+    warning: '#FF9F0A',
+    error: '#FF453A',
+    errorLight: '#2D1B1B',
     disabled: '#4B5563',
   },
 };

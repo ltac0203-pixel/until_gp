@@ -14,11 +14,15 @@ import { MediaDisplay } from './MediaDisplay';
 interface MessageBubbleProps {
   message: Message;
   onReactionPress?: (message: Message) => void;
+  onLongPress?: (message: Message) => void;
+  onReaction?: (messageId: string, emoji: string) => Promise<void>;
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({
   message,
   onReactionPress,
+  onLongPress,
+  onReaction,
 }) => {
   const { theme } = useTheme();
   const colors = getThemeColors(theme);

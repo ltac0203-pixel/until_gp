@@ -74,6 +74,15 @@ export interface Group {
   disbandedAt?: Date;
   disbandReason?: DisbandReason;
   archivedUntil?: Date; // When archived group will be permanently deleted
+  inviteCode?: string; // Unique code for joining the group
+  inviteCodeExpiresAt?: Date; // When the invite code expires
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  avatar?: string;
+  createdAt: Date;
 }
 
 export interface FlowGroupsSettings {
@@ -84,4 +93,5 @@ export interface FlowGroupsSettings {
   showExpirationWarnings: boolean;
   archiveRetentionDays: number; // How long to keep archived groups
   autoJoinSuggestions: boolean; // Suggest groups based on interests
+  currentUser?: UserProfile; // Current user profile
 }

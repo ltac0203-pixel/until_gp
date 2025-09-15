@@ -8,11 +8,13 @@ import {
   Switch,
   Platform,
   Alert,
+  TextInput,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import { getThemeColors } from '../utils/themes';
-import { FlowGroupsSettings, GroupLifespan, Theme } from '../types';
+import { FlowGroupsSettings, GroupLifespan, Theme, UserProfile } from '../types';
 import { StorageService } from '../services/storage';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -31,9 +33,13 @@ const SettingsScreen: React.FC = () => {
     archiveRetentionDays: 30,
     autoJoinSuggestions: false,
   });
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [editedName, setEditedName] = useState('');
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     loadSettings();
+    loadUserProfile();
   }, []);
 
   const loadSettings = async () => {
@@ -41,9 +47,33 @@ const SettingsScreen: React.FC = () => {
     setSettings(loadedSettings);
   };
 
+  const loadUserProfile = async () => {
+    const user = await StorageService.getCurrentUser();
+    setCurrentUser(user);
+    setEditedName(user.name);
+  };
+
   const saveSettings = async (newSettings: FlowGroupsSettings) => {
     await StorageService.saveSettings(newSettings);
     setSettings(newSettings);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editedName.trim()) {
+      Alert.alert('エラー', '名前を入力してください');
+      return;
+    }
+
+    if (currentUser) {
+      const updatedUser: UserProfile = {
+        ...currentUser,
+        name: editedName.trim(),
+      };
+      await StorageService.updateCurrentUser(updatedUser);
+      setCurrentUser(updatedUser);
+      setShowProfileEdit(false);
+      Alert.alert('完了', 'プロファイルが更新されました');
+    }
   };
 
   const handleThemeChange = async (newTheme: Theme) => {
@@ -128,6 +158,36 @@ const SettingsScreen: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        <SettingSection title="プロファイル">
+          <TouchableOpacity
+            style={styles.profileRow}
+            onPress={() => {
+              setEditedName(currentUser?.name || '');
+              setShowProfileEdit(true);
+            }}
+          >
+            <LinearGradient
+              colors={[colors.primary, colors.primaryLight]}
+              style={styles.profileAvatar}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Text style={styles.profileAvatarText}>
+                {currentUser?.name.charAt(0).toUpperCase() || 'U'}
+              </Text>
+            </LinearGradient>
+            <View style={styles.profileInfo}>
+              <Text style={[styles.profileName, { color: colors.text }]}>
+                {currentUser?.name || 'ユーザー'}
+              </Text>
+              <Text style={[styles.profileId, { color: colors.textSecondary }]}>
+                ID: {currentUser?.id || 'unknown'}
+              </Text>
+            </View>
+            <Icon name="chevron-forward" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </SettingSection>
+
         <SettingSection title="外観">
           <SettingRow
             icon="contrast-outline"
@@ -255,6 +315,67 @@ const SettingsScreen: React.FC = () => {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Profile Edit Modal */}
+      <Modal
+        visible={showProfileEdit}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowProfileEdit(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                プロファイル編集
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowProfileEdit(false)}
+                style={styles.modalCloseButton}
+              >
+                <Icon name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalBody}>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>
+                表示名
+              </Text>
+              <TextInput
+                style={[styles.textInput, {
+                  color: colors.text,
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.border,
+                }]}
+                value={editedName}
+                onChangeText={setEditedName}
+                placeholder="名前を入力"
+                placeholderTextColor={colors.textSecondary}
+                maxLength={20}
+              />
+            </View>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: colors.border }]}
+                onPress={() => setShowProfileEdit(false)}
+              >
+                <Text style={[styles.modalButtonText, { color: colors.text }]}>
+                  キャンセル
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: colors.primary }]}
+                onPress={handleSaveProfile}
+              >
+                <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>
+                  保存
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -389,6 +510,88 @@ const styles = StyleSheet.create({
   footerSubtext: {
     fontSize: 12,
     opacity: 0.7,
+  },
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  profileAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  profileAvatarText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  profileId: {
+    fontSize: 12,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '90%',
+    maxWidth: 400,
+    borderRadius: 20,
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalBody: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 16,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

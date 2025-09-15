@@ -11,6 +11,7 @@ import CreateGroupScreen from "./src/screens/CreateGroupScreen";
 import ArchiveScreen from "./src/screens/ArchiveScreen";
 import SettingsScreen from "./src/screens/SettingsScreen";
 import GroupChatScreen from "./src/screens/GroupChatScreen";
+import JoinGroupScreen from "./src/screens/JoinGroupScreen";
 import { ThemeProvider, useTheme } from "./src/contexts/ThemeContext";
 import { getThemeColors } from "./src/utils/themes";
 
@@ -20,6 +21,7 @@ export type RootStackParamList = {
     groupId: string;
     isArchived?: boolean;
   };
+  JoinGroup: undefined;
 };
 
 export type TabParamList = {
@@ -222,6 +224,14 @@ const AppContent: React.FC = () => {
         <Stack.Screen
           name="GroupChat"
           component={GroupChatScreen}
+          options={{
+            gestureResponseDistance: 100,
+            gestureVelocityImpact: 0.3,
+          }}
+        />
+        <Stack.Screen
+          name="JoinGroup"
+          component={JoinGroupScreen}
           options={{
             gestureResponseDistance: 100,
             gestureVelocityImpact: 0.3,

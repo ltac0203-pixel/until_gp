@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Message, FlowGroupsSettings, MessageStatus, Group, GroupLifespan, GroupStatus, DisbandReason } from '../types';
+import { Message, FlowGroupsSettings, MessageStatus, Group, GroupLifespan, GroupStatus, DisbandReason, UserProfile } from '../types';
 
 const MESSAGES_KEY = '@flowgroups_messages';
 const SETTINGS_KEY = '@flowgroups_settings';
@@ -53,12 +53,23 @@ export const StorageService = {
     try {
       const jsonValue = await AsyncStorage.getItem(SETTINGS_KEY);
       if (jsonValue != null) {
-        return JSON.parse(jsonValue);
+        const settings = JSON.parse(jsonValue);
+        if (settings.currentUser?.createdAt) {
+          settings.currentUser.createdAt = new Date(settings.currentUser.createdAt);
+        }
+        return settings;
       }
     } catch (e) {
       console.error('Failed to load settings:', e);
     }
-    
+
+    // Create default user profile
+    const defaultUser: UserProfile = {
+      id: 'you',
+      name: 'あなた',
+      createdAt: new Date(),
+    };
+
     return {
       theme: 'light',
       enableHaptics: true,
@@ -67,7 +78,30 @@ export const StorageService = {
       showExpirationWarnings: true,
       archiveRetentionDays: 30,
       autoJoinSuggestions: false,
+      currentUser: defaultUser,
     };
+  },
+
+  async getCurrentUser(): Promise<UserProfile> {
+    const settings = await this.loadSettings();
+    if (!settings.currentUser) {
+      // Create and save default user if not exists
+      const defaultUser: UserProfile = {
+        id: 'you',
+        name: 'あなた',
+        createdAt: new Date(),
+      };
+      settings.currentUser = defaultUser;
+      await this.saveSettings(settings);
+      return defaultUser;
+    }
+    return settings.currentUser;
+  },
+
+  async updateCurrentUser(profile: UserProfile): Promise<void> {
+    const settings = await this.loadSettings();
+    settings.currentUser = profile;
+    await this.saveSettings(settings);
   },
 
   async clearAll(): Promise<void> {
@@ -240,15 +274,19 @@ export const StorageService = {
   },
 
   async createGroup(name: string, description: string, lifespan: GroupLifespan, expirationTime: Date): Promise<Group> {
+    const inviteCode = this.generateInviteCode();
+    const inviteCodeExpiresAt = new Date(expirationTime.getTime()); // Invite code expires with group
+    const currentUser = await this.getCurrentUser();
+
     const newGroup: Group = {
       id: Date.now().toString(),
       name,
       description,
       members: [
-        { id: 'you', name: 'あなた' },
+        { id: currentUser.id, name: currentUser.name },
       ],
       createdAt: new Date(),
-      createdBy: 'you',
+      createdBy: currentUser.id,
       lastActivity: new Date(),
       unreadCount: 0,
       messages: [],
@@ -260,10 +298,102 @@ export const StorageService = {
         allowExtension: false,
       },
       messageCount: 0,
+      inviteCode,
+      inviteCodeExpiresAt,
     };
 
     await this.saveGroup(newGroup);
     return newGroup;
+  },
+
+  generateInviteCode(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  },
+
+  async regenerateInviteCode(groupId: string): Promise<string | null> {
+    const group = await this.loadGroup(groupId);
+    if (!group || group.status === 'archived') return null;
+
+    group.inviteCode = this.generateInviteCode();
+    group.inviteCodeExpiresAt = new Date(group.settings.expirationTime.getTime());
+
+    await this.saveGroup(group);
+    return group.inviteCode;
+  },
+
+  async joinGroupWithCode(inviteCode: string, userId: string, userName: string): Promise<Group | null> {
+    const { active } = await this.loadGroups();
+    const group = active.find(g =>
+      g.inviteCode === inviteCode &&
+      g.inviteCodeExpiresAt &&
+      g.inviteCodeExpiresAt.getTime() > Date.now()
+    );
+
+    if (!group) return null;
+
+    // Check if user is already a member
+    if (group.members.some(m => m.id === userId)) {
+      return group;
+    }
+
+    // Add new member
+    group.members.push({ id: userId, name: userName });
+
+    // Add system message about new member
+    const systemMessage: Message = {
+      id: `system-${Date.now()}`,
+      text: `${userName}がグループに参加しました`,
+      timestamp: new Date(),
+      isOwnMessage: false,
+      sender: 'システム',
+      status: 'delivered' as MessageStatus,
+    };
+
+    group.messages.push(systemMessage);
+    group.lastMessage = systemMessage;
+    group.lastActivity = new Date();
+
+    await this.saveGroup(group);
+    return group;
+  },
+
+  async removeMember(groupId: string, memberId: string, removedBy: string): Promise<boolean> {
+    const group = await this.loadGroup(groupId);
+    if (!group || group.status === 'archived') return false;
+
+    // Only creator can remove members
+    if (group.createdBy !== removedBy) return false;
+
+    // Cannot remove creator
+    if (memberId === group.createdBy) return false;
+
+    const removedMember = group.members.find(m => m.id === memberId);
+    if (!removedMember) return false;
+
+    // Remove member
+    group.members = group.members.filter(m => m.id !== memberId);
+
+    // Add system message about member removal
+    const systemMessage: Message = {
+      id: `system-${Date.now()}`,
+      text: `${removedMember.name}がグループから削除されました`,
+      timestamp: new Date(),
+      isOwnMessage: false,
+      sender: 'システム',
+      status: 'delivered' as MessageStatus,
+    };
+
+    group.messages.push(systemMessage);
+    group.lastMessage = systemMessage;
+    group.lastActivity = new Date();
+
+    await this.saveGroup(group);
+    return true;
   },
 
   async markGroupAsRead(groupId: string): Promise<void> {

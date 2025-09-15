@@ -241,12 +241,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         style={styles.headerGradient}
       >
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            FlowGroups
-          </Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            {groups.length}個のアクティブグループ
-          </Text>
+          <View style={styles.headerLeft}>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>
+              FlowGroups
+            </Text>
+            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+              {groups.length}個のアクティブグループ
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={[styles.joinButton, { backgroundColor: colors.primary }]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              navigation.navigate('JoinGroup');
+            }}
+          >
+            <Text style={styles.joinButtonText}>参加</Text>
+          </TouchableOpacity>
         </View>
       </LinearGradient>
       
@@ -294,9 +305,15 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
     paddingTop: Platform.OS === 'ios' ? 8 : 16,
+  },
+  headerLeft: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: 32,
@@ -437,6 +454,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     opacity: 0.7,
+  },
+  joinButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    alignSelf: 'center',
+  },
+  joinButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 

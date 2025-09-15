@@ -10,6 +10,8 @@ import {
   Animated,
   Modal,
   ScrollView,
+  Alert,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
@@ -20,6 +22,7 @@ import MessageBubble from '../components/MessageBubble';
 import MessageInput from '../components/MessageInput';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 interface GroupChatScreenProps {
   navigation: any;
@@ -144,9 +147,75 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
       ...group,
       messages: updatedMessages,
     };
-    
+
     await StorageService.saveGroup(updatedGroup);
     setGroup(updatedGroup);
+  };
+
+  const handleShareInviteCode = async () => {
+    if (!group?.inviteCode) return;
+
+    try {
+      await Share.share({
+        message: `FlowGroupsの招待コード: ${group.inviteCode}\n\nグループ「${group.name}」に参加しよう！`,
+        title: 'グループに招待',
+      });
+    } catch (error) {
+      console.error('Share failed:', error);
+    }
+  };
+
+  const handleRegenerateInviteCode = async () => {
+    if (!group) return;
+
+    Alert.alert(
+      '招待コードを再生成',
+      '現在の招待コードは無効になります。続行しますか？',
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        {
+          text: '再生成',
+          onPress: async () => {
+            const newCode = await StorageService.regenerateInviteCode(group.id);
+            if (newCode) {
+              const updatedGroup = await StorageService.loadGroup(group.id);
+              if (updatedGroup) {
+                setGroup(updatedGroup);
+                Alert.alert('完了', `新しい招待コード: ${newCode}`);
+              }
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleRemoveMember = async (memberId: string, memberName: string) => {
+    if (!group || group.createdBy !== 'you') return;
+
+    Alert.alert(
+      'メンバーを削除',
+      `${memberName}をグループから削除しますか？`,
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        {
+          text: '削除',
+          style: 'destructive',
+          onPress: async () => {
+            const success = await StorageService.removeMember(group.id, memberId, 'you');
+            if (success) {
+              const updatedGroup = await StorageService.loadGroup(group.id);
+              if (updatedGroup) {
+                setGroup(updatedGroup);
+                setMessages(updatedGroup.messages);
+              }
+            } else {
+              Alert.alert('エラー', 'メンバーの削除に失敗しました');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const renderMessage = ({ item }: { item: Message }) => (
@@ -291,6 +360,38 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
               </View>
             )}
 
+            {/* Invite Code Section */}
+            {group?.status !== 'archived' && (
+              <View style={[styles.detailsSection, { backgroundColor: colors.surface }]}>
+                <Text style={[styles.detailsSectionTitle, { color: colors.textSecondary }]}>
+                  招待コード
+                </Text>
+                <View style={styles.inviteCodeContainer}>
+                  <Text style={[styles.inviteCode, { color: colors.primary, backgroundColor: colors.primary + '20' }]}>
+                    {group?.inviteCode || 'N/A'}
+                  </Text>
+                  <View style={styles.inviteActions}>
+                    <TouchableOpacity
+                      style={[styles.inviteButton, { backgroundColor: colors.primary }]}
+                      onPress={handleShareInviteCode}
+                    >
+                      <Icon name="share-outline" size={18} color="#FFFFFF" />
+                      <Text style={styles.inviteButtonText}>共有</Text>
+                    </TouchableOpacity>
+                    {group?.createdBy === 'you' && (
+                      <TouchableOpacity
+                        style={[styles.inviteButton, { backgroundColor: colors.textSecondary }]}
+                        onPress={handleRegenerateInviteCode}
+                      >
+                        <Icon name="refresh-outline" size={18} color="#FFFFFF" />
+                        <Text style={styles.inviteButtonText}>再生成</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              </View>
+            )}
+
             {/* Creator */}
             <View style={[styles.detailsSection, { backgroundColor: colors.surface }]}>
               <Text style={[styles.detailsSectionTitle, { color: colors.textSecondary }]}>
@@ -328,6 +429,14 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
                       </Text>
                     )}
                   </View>
+                  {group?.createdBy === 'you' && member.id !== 'you' && group?.status !== 'archived' && (
+                    <TouchableOpacity
+                      style={[styles.removeMemberButton, { backgroundColor: colors.error + '20' }]}
+                      onPress={() => handleRemoveMember(member.id, member.name)}
+                    >
+                      <Icon name="close-circle" size={20} color={colors.error} />
+                    </TouchableOpacity>
+                  )}
                 </View>
               ))}
             </View>
@@ -529,6 +638,42 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  inviteCodeContainer: {
+    marginTop: 8,
+  },
+  inviteCode: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    letterSpacing: 2,
+  },
+  inviteActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 12,
+  },
+  inviteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  inviteButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  removeMemberButton: {
+    padding: 8,
+    borderRadius: 20,
+    marginLeft: 'auto',
   },
 });
 

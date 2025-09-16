@@ -2,6 +2,31 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## SerenaMCP Integration
+
+This project is enhanced with **Serena**, a semantic code analysis and editing toolkit that provides IDE-like capabilities for precise code navigation and modification.
+
+### Serena Capabilities
+- **Semantic Search**: Find symbols, references, and patterns across the TypeScript/JavaScript codebase
+- **Precise Editing**: Modify code at the symbol level with language server understanding
+- **Code Navigation**: Navigate between related components, services, and types
+- **Dependency Analysis**: Understand import relationships and module dependencies
+
+### Key Serena Commands for This Project
+When working with this codebase, Serena can help with:
+1. **Finding Components**: Search for React components by name or type
+2. **Tracking Group Logic**: Navigate auto-disband functionality across services
+3. **Theme Analysis**: Find all theme-related code and color usage
+4. **Type Checking**: Validate TypeScript types and interfaces
+5. **Refactoring**: Safely rename symbols and update references
+
+### Project Context
+Serena is configured with knowledge about:
+- React Native/Expo structure and patterns
+- TypeScript configuration (strict mode)
+- Project-specific directories (src/components, src/screens, etc.)
+- Ignored paths (node_modules, android, ios, .expo)
+
 ## Development Commands
 
 **Start development server:**
@@ -19,7 +44,7 @@ npm install
 ```
 
 **TypeScript compilation:**
-The project uses TypeScript with strict mode enabled. TypeScript errors will be shown by the Expo bundler during development.
+The project uses TypeScript with strict mode enabled (`tsconfig.json` extends `expo/tsconfig.base`). TypeScript errors will be shown by the Expo bundler during development.
 
 ## Project Concept
 
@@ -94,10 +119,11 @@ Components follow these conventions:
 - Optimistic UI updates for better responsiveness
 
 ### Group Lifecycle Management
-- Background tasks check for expired groups
+- Background tasks check for expired groups via `StorageService.processExpiredGroups()`
 - Groups transition to "expiring soon" state at 10% remaining lifetime
 - Archived groups retained for 30 days for reference
 - Members receive notifications at key lifecycle events
+- Group joining via `JoinGroupScreen` with group codes
 
 ## Media Handling
 
@@ -114,6 +140,7 @@ The application supports image and video attachments in messages:
 **Stack Navigator (Root):**
 - MainTabs
 - GroupChat
+- JoinGroup
 
 **Tab Navigator (MainTabs):**
 - Home: Active groups list
@@ -152,3 +179,13 @@ Navigation types are defined in `App.tsx` as `RootStackParamList` and `TabParamL
 **Japanese UI:**
 - Tab labels and many UI elements use Japanese text
 - Consider maintaining bilingual support where appropriate
+
+## Dependencies
+
+**Core Dependencies:**
+- React Native 0.79.5 with Expo SDK 53
+- TypeScript with strict mode
+- React Navigation (stack & bottom tabs)
+- AsyncStorage for persistence
+- Expo modules: blur, haptics, image-picker, av, media-library
+- React Native Vector Icons for Bootstrap Icons

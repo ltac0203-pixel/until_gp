@@ -30,7 +30,16 @@
       "Bash(git checkout:*)",
       "mcp__ide__getDiagnostics",
       "Read(//c/Users/mryot/Pictures/iCloud Photos/Photos/**)",
-      "Bash(ipconfig)"
+      "Bash(ipconfig)",
+      "WebFetch(domain:github.com)",
+      "Bash(mkdir:*)",
+      "mcp__serena-mcp-server__check_onboarding_performed",
+      "mcp__serena-mcp-server__onboarding",
+      "mcp__serena-mcp-server__list_dir",
+      "mcp__serena-mcp-server__find_file",
+      "mcp__serena-mcp-server__find_symbol",
+      "mcp__serena-mcp-server__write_memory",
+      "mcp__serena-mcp-server__list_memories"
     ],
     "deny": [],
     "ask": []

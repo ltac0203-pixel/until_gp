@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,10 @@ import {
   Alert,
   KeyboardAvoidingView,
   ScrollView,
+  Animated,
+  Vibration,
+  Clipboard,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
@@ -29,13 +33,107 @@ const JoinGroupScreen: React.FC<JoinGroupScreenProps> = ({ navigation }) => {
   const [inviteCode, setInviteCode] = useState('');
   const [userName, setUserName] = useState('');
   const [isJoining, setIsJoining] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const codeInputRefs = useRef<Array<TextInput | null>>([]);
+  const shakeAnimation = useRef(new Animated.Value(0)).current;
+  const fadeAnimation = useRef(new Animated.Value(0)).current;
+  const scaleAnimations = useRef(
+    Array.from({ length: 6 }, () => new Animated.Value(1))
+  ).current;
+
+  useEffect(() => {
+    // Load current user profile
+    loadUserProfile();
+  }, []);
+
+  const loadUserProfile = async () => {
+    try {
+      const user = await StorageService.getCurrentUser();
+      if (user) {
+        setUserName(user.name);
+      }
+    } catch (error) {
+      console.error('Failed to load user profile:', error);
+    }
+  };
+
+  const showErrorAnimation = (message: string) => {
+    setErrorMessage(message);
+    setShowError(true);
+
+    // Vibrate on error
+    if (Platform.OS !== 'web') {
+      Vibration.vibrate(100);
+    }
+
+    // Shake animation
+    Animated.sequence([
+      Animated.timing(shakeAnimation, {
+        toValue: 10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnimation, {
+        toValue: -10,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnimation, {
+        toValue: 10,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnimation, {
+        toValue: 0,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Fade in error message
+    Animated.timing(fadeAnimation, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+
+    // Auto hide error after 3 seconds
+    setTimeout(() => {
+      Animated.timing(fadeAnimation, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start(() => setShowError(false));
+    }, 3000);
+  };
 
   const handleCodeChange = (text: string, index: number) => {
     const newCode = inviteCode.split('');
     newCode[index] = text.toUpperCase();
     const updatedCode = newCode.join('');
     setInviteCode(updatedCode);
+
+    // Animate the input box
+    if (text) {
+      Animated.sequence([
+        Animated.spring(scaleAnimations[index], {
+          toValue: 1.1,
+          tension: 300,
+          friction: 10,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnimations[index], {
+          toValue: 1,
+          tension: 300,
+          friction: 10,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      // Haptic feedback
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
 
     // Auto-focus next input
     if (text && index < 5) {
@@ -53,12 +151,12 @@ const JoinGroupScreen: React.FC<JoinGroupScreenProps> = ({ navigation }) => {
     const code = inviteCode.trim();
 
     if (code.length !== 6) {
-      Alert.alert('エラー', '6文字の招待コードを入力してください');
+      showErrorAnimation('6文字の招待コードを入力してください');
       return;
     }
 
     if (!userName.trim()) {
-      Alert.alert('エラー', '名前を入力してください');
+      showErrorAnimation('名前を入力してください');
       return;
     }
 
@@ -87,18 +185,45 @@ const JoinGroupScreen: React.FC<JoinGroupScreenProps> = ({ navigation }) => {
         ]
       );
     } else {
-      Alert.alert(
-        'エラー',
-        '無効な招待コード、または期限切れです。',
-        [{ text: 'OK' }]
-      );
+      showErrorAnimation('無効な招待コード、または期限切れです');
     }
   };
 
   const handlePasteCode = async () => {
-    // In React Native, clipboard would be handled differently
-    // This is a placeholder for the paste functionality
-    Alert.alert('情報', 'クリップボードから貼り付け機能は後で実装されます');
+    try {
+      const clipboardContent = await Clipboard.getString();
+      const cleanedCode = clipboardContent.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+      if (cleanedCode.length === 6) {
+        setInviteCode(cleanedCode);
+
+        // Animate all input boxes
+        scaleAnimations.forEach((anim, index) => {
+          setTimeout(() => {
+            Animated.sequence([
+              Animated.spring(anim, {
+                toValue: 1.1,
+                tension: 300,
+                friction: 10,
+                useNativeDriver: true,
+              }),
+              Animated.spring(anim, {
+                toValue: 1,
+                tension: 300,
+                friction: 10,
+                useNativeDriver: true,
+              }),
+            ]).start();
+          }, index * 50);
+        });
+
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } else {
+        showErrorAnimation('クリップボードに有効な招待コードがありません');
+      }
+    } catch (error) {
+      showErrorAnimation('クリップボードの読み取りに失敗しました');
+    }
   };
 
   return (
@@ -149,36 +274,81 @@ const JoinGroupScreen: React.FC<JoinGroupScreenProps> = ({ navigation }) => {
               6文字の招待コードを入力してください
             </Text>
 
-            <View style={styles.codeInputContainer}>
+            <Animated.View
+              style={[
+                styles.codeInputContainer,
+                {
+                  transform: [{ translateX: shakeAnimation }],
+                },
+              ]}
+            >
               {[0, 1, 2, 3, 4, 5].map((index) => (
-                <BlurView
+                <Animated.View
                   key={index}
-                  intensity={60}
-                  tint={theme}
-                  style={styles.codeInputBlur}
+                  style={{
+                    transform: [{ scale: scaleAnimations[index] }],
+                  }}
                 >
-                  <TextInput
-                    ref={(ref) => {
-                      codeInputRefs.current[index] = ref;
-                    }}
-                    style={[
-                      styles.codeInput,
-                      {
-                        color: colors.text,
-                        borderColor: inviteCode[index] ? colors.primary : colors.border,
-                      }
-                    ]}
-                    value={inviteCode[index] || ''}
-                    onChangeText={(text) => handleCodeChange(text, index)}
-                    onKeyPress={({ nativeEvent }) => handleCodeKeyPress(nativeEvent.key, index)}
-                    maxLength={1}
-                    autoCapitalize="characters"
-                    placeholder="–"
-                    placeholderTextColor={colors.textSecondary + '50'}
-                  />
-                </BlurView>
+                  <BlurView
+                    intensity={60}
+                    tint={theme}
+                    style={styles.codeInputBlur}
+                  >
+                    <TextInput
+                      ref={(ref) => {
+                        codeInputRefs.current[index] = ref;
+                      }}
+                      style={[
+                        styles.codeInput,
+                        {
+                          color: colors.text,
+                          borderColor: inviteCode[index] ? colors.primary : colors.border,
+                          borderWidth: inviteCode[index] ? 2 : 1,
+                          backgroundColor: inviteCode[index]
+                            ? colors.primary + '10'
+                            : 'rgba(255, 255, 255, 0.05)',
+                        }
+                      ]}
+                      value={inviteCode[index] || ''}
+                      onChangeText={(text) => handleCodeChange(text, index)}
+                      onKeyPress={({ nativeEvent }) => handleCodeKeyPress(nativeEvent.key, index)}
+                      maxLength={1}
+                      autoCapitalize="characters"
+                      placeholder="–"
+                      placeholderTextColor={colors.textSecondary + '50'}
+                      keyboardType="default"
+                      selectTextOnFocus
+                    />
+                  </BlurView>
+                </Animated.View>
               ))}
-            </View>
+            </Animated.View>
+
+            {showError && (
+              <Animated.View
+                style={[
+                  styles.errorContainer,
+                  {
+                    opacity: fadeAnimation,
+                    transform: [
+                      {
+                        translateY: fadeAnimation.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [-10, 0],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <View style={[styles.errorBox, { backgroundColor: colors.error + '15' }]}>
+                  <Icon name="alert-circle" size={16} color={colors.error} />
+                  <Text style={[styles.errorText, { color: colors.error }]}>
+                    {errorMessage}
+                  </Text>
+                </View>
+              </Animated.View>
+            )}
 
             <TouchableOpacity
               style={styles.pasteButton}
@@ -224,9 +394,18 @@ const JoinGroupScreen: React.FC<JoinGroupScreenProps> = ({ navigation }) => {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Text style={styles.joinButtonText}>
-                  {isJoining ? '参加中...' : 'グループに参加'}
-                </Text>
+                {isJoining ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                    <Text style={[styles.joinButtonText, { marginLeft: 8 }]}>
+                      参加中...
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={styles.joinButtonText}>
+                    グループに参加
+                  </Text>
+                )}
               </LinearGradient>
             </TouchableOpacity>
 
@@ -317,9 +496,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
-    borderWidth: 2,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   pasteButton: {
     flexDirection: 'row',
@@ -391,6 +568,26 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     lineHeight: 18,
+  },
+  errorContainer: {
+    marginBottom: 16,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  errorText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

@@ -94,3 +94,7 @@
   *.tmp
   *.temp
 node_modules
+
+CLAUDE.md
+.claude
+.serena

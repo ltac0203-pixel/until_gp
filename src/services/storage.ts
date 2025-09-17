@@ -1,10 +1,19 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Message, FlowGroupsSettings, MessageStatus, Group, GroupLifespan, GroupStatus, DisbandReason, UserProfile } from '../types';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  Message,
+  FlowGroupsSettings,
+  MessageStatus,
+  Group,
+  GroupLifespan,
+  GroupStatus,
+  DisbandReason,
+  UserProfile,
+} from "../types";
 
-const MESSAGES_KEY = '@flowgroups_messages';
-const SETTINGS_KEY = '@flowgroups_settings';
-const ACTIVE_GROUPS_KEY = '@flowgroups_active_groups';
-const ARCHIVED_GROUPS_KEY = '@flowgroups_archived_groups';
+const MESSAGES_KEY = "@flowgroups_messages";
+const SETTINGS_KEY = "@flowgroups_settings";
+const ACTIVE_GROUPS_KEY = "@flowgroups_active_groups";
+const ARCHIVED_GROUPS_KEY = "@flowgroups_archived_groups";
 
 export const StorageService = {
   async saveMessages(messages: Message[]): Promise<void> {
@@ -12,7 +21,7 @@ export const StorageService = {
       const jsonValue = JSON.stringify(messages);
       await AsyncStorage.setItem(MESSAGES_KEY, jsonValue);
     } catch (e) {
-      console.error('Failed to save messages:', e);
+      console.error("Failed to save messages:", e);
     }
   },
 
@@ -24,7 +33,9 @@ export const StorageService = {
         return messages.map((msg: any) => ({
           ...msg,
           timestamp: new Date(msg.timestamp),
-          deliveryTime: msg.deliveryTime ? new Date(msg.deliveryTime) : undefined,
+          deliveryTime: msg.deliveryTime
+            ? new Date(msg.deliveryTime)
+            : undefined,
           editedAt: msg.editedAt ? new Date(msg.editedAt) : undefined,
           reactions: msg.reactions?.map((r: any) => ({
             ...r,
@@ -35,7 +46,7 @@ export const StorageService = {
       }
       return [];
     } catch (e) {
-      console.error('Failed to load messages:', e);
+      console.error("Failed to load messages:", e);
       return [];
     }
   },
@@ -45,7 +56,7 @@ export const StorageService = {
       const jsonValue = JSON.stringify(settings);
       await AsyncStorage.setItem(SETTINGS_KEY, jsonValue);
     } catch (e) {
-      console.error('Failed to save settings:', e);
+      console.error("Failed to save settings:", e);
     }
   },
 
@@ -55,26 +66,28 @@ export const StorageService = {
       if (jsonValue != null) {
         const settings = JSON.parse(jsonValue);
         if (settings.currentUser?.createdAt) {
-          settings.currentUser.createdAt = new Date(settings.currentUser.createdAt);
+          settings.currentUser.createdAt = new Date(
+            settings.currentUser.createdAt
+          );
         }
         return settings;
       }
     } catch (e) {
-      console.error('Failed to load settings:', e);
+      console.error("Failed to load settings:", e);
     }
 
     // Create default user profile
     const defaultUser: UserProfile = {
-      id: 'you',
-      name: 'あなた',
+      id: "you",
+      name: "あなた",
       createdAt: new Date(),
     };
 
     return {
-      theme: 'light',
+      theme: "light",
       enableHaptics: true,
       enableTypingIndicator: true,
-      defaultGroupLifespan: '24_hours',
+      defaultGroupLifespan: "24_hours",
       showExpirationWarnings: true,
       archiveRetentionDays: 30,
       autoJoinSuggestions: false,
@@ -87,8 +100,8 @@ export const StorageService = {
     if (!settings.currentUser) {
       // Create and save default user if not exists
       const defaultUser: UserProfile = {
-        id: 'you',
-        name: 'あなた',
+        id: "you",
+        name: "あなた",
         createdAt: new Date(),
       };
       settings.currentUser = defaultUser;
@@ -106,13 +119,16 @@ export const StorageService = {
 
   async clearAll(): Promise<void> {
     try {
-      await AsyncStorage.multiRemove([MESSAGES_KEY, SETTINGS_KEY, ACTIVE_GROUPS_KEY, ARCHIVED_GROUPS_KEY]);
+      await AsyncStorage.multiRemove([
+        MESSAGES_KEY,
+        SETTINGS_KEY,
+        ACTIVE_GROUPS_KEY,
+        ARCHIVED_GROUPS_KEY,
+      ]);
     } catch (e) {
-      console.error('Failed to clear storage:', e);
+      console.error("Failed to clear storage:", e);
     }
   },
-
-
 
   // Group management methods
   async saveActiveGroups(groups: Group[]): Promise<void> {
@@ -120,7 +136,7 @@ export const StorageService = {
       const jsonValue = JSON.stringify(groups);
       await AsyncStorage.setItem(ACTIVE_GROUPS_KEY, jsonValue);
     } catch (e) {
-      console.error('Failed to save active groups:', e);
+      console.error("Failed to save active groups:", e);
     }
   },
 
@@ -129,15 +145,15 @@ export const StorageService = {
       const jsonValue = JSON.stringify(groups);
       await AsyncStorage.setItem(ARCHIVED_GROUPS_KEY, jsonValue);
     } catch (e) {
-      console.error('Failed to save archived groups:', e);
+      console.error("Failed to save archived groups:", e);
     }
   },
 
-  async loadGroups(): Promise<{ active: Group[], archived: Group[] }> {
+  async loadGroups(): Promise<{ active: Group[]; archived: Group[] }> {
     try {
       const activeJson = await AsyncStorage.getItem(ACTIVE_GROUPS_KEY);
       const archivedJson = await AsyncStorage.getItem(ARCHIVED_GROUPS_KEY);
-      
+
       const parseGroups = (jsonValue: string | null): Group[] => {
         if (!jsonValue) return [];
         const groups = JSON.parse(jsonValue);
@@ -149,23 +165,35 @@ export const StorageService = {
             ...group.settings,
             expirationTime: new Date(group.settings.expirationTime),
           },
-          disbandedAt: group.disbandedAt ? new Date(group.disbandedAt) : undefined,
-          archivedUntil: group.archivedUntil ? new Date(group.archivedUntil) : undefined,
-          lastMessage: group.lastMessage ? {
-            ...group.lastMessage,
-            timestamp: new Date(group.lastMessage.timestamp),
-            deliveryTime: group.lastMessage.deliveryTime ? new Date(group.lastMessage.deliveryTime) : undefined,
-            editedAt: group.lastMessage.editedAt ? new Date(group.lastMessage.editedAt) : undefined,
-            reactions: group.lastMessage.reactions?.map((r: any) => ({
-              ...r,
-              timestamp: new Date(r.timestamp),
-            })),
-            attachments: group.lastMessage.attachments || undefined,
-          } : undefined,
+          disbandedAt: group.disbandedAt
+            ? new Date(group.disbandedAt)
+            : undefined,
+          archivedUntil: group.archivedUntil
+            ? new Date(group.archivedUntil)
+            : undefined,
+          lastMessage: group.lastMessage
+            ? {
+                ...group.lastMessage,
+                timestamp: new Date(group.lastMessage.timestamp),
+                deliveryTime: group.lastMessage.deliveryTime
+                  ? new Date(group.lastMessage.deliveryTime)
+                  : undefined,
+                editedAt: group.lastMessage.editedAt
+                  ? new Date(group.lastMessage.editedAt)
+                  : undefined,
+                reactions: group.lastMessage.reactions?.map((r: any) => ({
+                  ...r,
+                  timestamp: new Date(r.timestamp),
+                })),
+                attachments: group.lastMessage.attachments || undefined,
+              }
+            : undefined,
           messages: group.messages.map((msg: any) => ({
             ...msg,
             timestamp: new Date(msg.timestamp),
-            deliveryTime: msg.deliveryTime ? new Date(msg.deliveryTime) : undefined,
+            deliveryTime: msg.deliveryTime
+              ? new Date(msg.deliveryTime)
+              : undefined,
             editedAt: msg.editedAt ? new Date(msg.editedAt) : undefined,
             reactions: msg.reactions?.map((r: any) => ({
               ...r,
@@ -175,23 +203,26 @@ export const StorageService = {
           })),
         }));
       };
-      
+
       const active = parseGroups(activeJson);
       const archived = parseGroups(archivedJson);
-      
+
       // Clean up old archived groups
       const now = new Date();
-      const filteredArchived = archived.filter(g => 
-        !g.archivedUntil || g.archivedUntil.getTime() > now.getTime()
+      const filteredArchived = archived.filter(
+        (g) => !g.archivedUntil || g.archivedUntil.getTime() > now.getTime()
       );
-      
+
       if (filteredArchived.length !== archived.length) {
         await this.saveArchivedGroups(filteredArchived);
       }
-      
-      return { active: active.length > 0 ? active : this.getDefaultGroups(), archived: filteredArchived };
+
+      return {
+        active: active.length > 0 ? active : this.getDefaultGroups(),
+        archived: filteredArchived,
+      };
     } catch (e) {
-      console.error('Failed to load groups:', e);
+      console.error("Failed to load groups:", e);
       return { active: this.getDefaultGroups(), archived: [] };
     }
   },
@@ -200,59 +231,71 @@ export const StorageService = {
     try {
       const { active, archived } = await this.loadGroups();
       const now = new Date();
-      
+
       const stillActive: Group[] = [];
       const newlyArchived: Group[] = [];
-      
+
       for (const group of active) {
-        const isExpired = group.settings.expirationTime.getTime() <= now.getTime();
-        const isInactive = group.settings.inactivityThreshold && 
-          (now.getTime() - group.lastActivity.getTime()) > (group.settings.inactivityThreshold * 24 * 60 * 60 * 1000);
-        const hasReachedMessageLimit = group.settings.messageLimit && 
+        const isExpired =
+          group.settings.expirationTime.getTime() <= now.getTime();
+        const isInactive =
+          group.settings.inactivityThreshold &&
+          now.getTime() - group.lastActivity.getTime() >
+            group.settings.inactivityThreshold * 24 * 60 * 60 * 1000;
+        const hasReachedMessageLimit =
+          group.settings.messageLimit &&
           group.messageCount >= group.settings.messageLimit;
-        
+
         if (isExpired || isInactive || hasReachedMessageLimit) {
           const archivedGroup: Group = {
             ...group,
-            status: 'archived',
+            status: "archived",
             disbandedAt: now,
-            disbandReason: isExpired ? 'time_expired' : isInactive ? 'inactivity' : 'message_limit',
+            disbandReason: isExpired
+              ? "time_expired"
+              : isInactive
+              ? "inactivity"
+              : "message_limit",
             archivedUntil: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000), // Keep for 30 days
           };
           newlyArchived.push(archivedGroup);
         } else {
           // Update status if expiring soon (< 10% time remaining)
-          const totalTime = group.settings.expirationTime.getTime() - group.createdAt.getTime();
-          const remainingTime = group.settings.expirationTime.getTime() - now.getTime();
+          const totalTime =
+            group.settings.expirationTime.getTime() - group.createdAt.getTime();
+          const remainingTime =
+            group.settings.expirationTime.getTime() - now.getTime();
           const percentRemaining = remainingTime / totalTime;
-          
-          if (percentRemaining < 0.1 && group.status !== 'expiring_soon') {
-            group.status = 'expiring_soon';
+
+          if (percentRemaining < 0.1 && group.status !== "expiring_soon") {
+            group.status = "expiring_soon";
           }
           stillActive.push(group);
         }
       }
-      
+
       if (newlyArchived.length > 0) {
         await this.saveActiveGroups(stillActive);
         await this.saveArchivedGroups([...archived, ...newlyArchived]);
       }
     } catch (e) {
-      console.error('Failed to process expired groups:', e);
+      console.error("Failed to process expired groups:", e);
     }
   },
 
   async loadGroup(groupId: string): Promise<Group | null> {
     const { active, archived } = await this.loadGroups();
-    return [...active, ...archived].find(group => group.id === groupId) || null;
+    return (
+      [...active, ...archived].find((group) => group.id === groupId) || null
+    );
   },
 
   async saveGroup(group: Group): Promise<void> {
     try {
       const { active, archived } = await this.loadGroups();
-      
-      if (group.status === 'archived') {
-        const index = archived.findIndex(g => g.id === group.id);
+
+      if (group.status === "archived") {
+        const index = archived.findIndex((g) => g.id === group.id);
         if (index >= 0) {
           archived[index] = group;
         } else {
@@ -260,7 +303,7 @@ export const StorageService = {
         }
         await this.saveArchivedGroups(archived);
       } else {
-        const index = active.findIndex(g => g.id === group.id);
+        const index = active.findIndex((g) => g.id === group.id);
         if (index >= 0) {
           active[index] = group;
         } else {
@@ -269,11 +312,16 @@ export const StorageService = {
         await this.saveActiveGroups(active);
       }
     } catch (e) {
-      console.error('Failed to save group:', e);
+      console.error("Failed to save group:", e);
     }
   },
 
-  async createGroup(name: string, description: string, lifespan: GroupLifespan, expirationTime: Date): Promise<Group> {
+  async createGroup(
+    name: string,
+    description: string,
+    lifespan: GroupLifespan,
+    expirationTime: Date
+  ): Promise<Group> {
     const inviteCode = this.generateInviteCode();
     const inviteCodeExpiresAt = new Date(expirationTime.getTime()); // Invite code expires with group
     const currentUser = await this.getCurrentUser();
@@ -282,15 +330,13 @@ export const StorageService = {
       id: Date.now().toString(),
       name,
       description,
-      members: [
-        { id: currentUser.id, name: currentUser.name },
-      ],
+      members: [{ id: currentUser.id, name: currentUser.name }],
       createdAt: new Date(),
       createdBy: currentUser.id,
       lastActivity: new Date(),
       unreadCount: 0,
       messages: [],
-      status: 'active',
+      status: "active",
       settings: {
         lifespan,
         expirationTime,
@@ -307,8 +353,8 @@ export const StorageService = {
   },
 
   generateInviteCode(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = '';
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let code = "";
     for (let i = 0; i < 6; i++) {
       code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
@@ -317,27 +363,34 @@ export const StorageService = {
 
   async regenerateInviteCode(groupId: string): Promise<string | null> {
     const group = await this.loadGroup(groupId);
-    if (!group || group.status === 'archived') return null;
+    if (!group || group.status === "archived") return null;
 
     group.inviteCode = this.generateInviteCode();
-    group.inviteCodeExpiresAt = new Date(group.settings.expirationTime.getTime());
+    group.inviteCodeExpiresAt = new Date(
+      group.settings.expirationTime.getTime()
+    );
 
     await this.saveGroup(group);
     return group.inviteCode;
   },
 
-  async joinGroupWithCode(inviteCode: string, userId: string, userName: string): Promise<Group | null> {
+  async joinGroupWithCode(
+    inviteCode: string,
+    userId: string,
+    userName: string
+  ): Promise<Group | null> {
     const { active } = await this.loadGroups();
-    const group = active.find(g =>
-      g.inviteCode === inviteCode &&
-      g.inviteCodeExpiresAt &&
-      g.inviteCodeExpiresAt.getTime() > Date.now()
+    const group = active.find(
+      (g) =>
+        g.inviteCode === inviteCode &&
+        g.inviteCodeExpiresAt &&
+        g.inviteCodeExpiresAt.getTime() > Date.now()
     );
 
     if (!group) return null;
 
     // Check if user is already a member
-    if (group.members.some(m => m.id === userId)) {
+    if (group.members.some((m) => m.id === userId)) {
       return group;
     }
 
@@ -350,8 +403,8 @@ export const StorageService = {
       text: `${userName}がグループに参加しました`,
       timestamp: new Date(),
       isOwnMessage: false,
-      sender: 'システム',
-      status: 'delivered' as MessageStatus,
+      sender: "システム",
+      status: "delivered" as MessageStatus,
     };
 
     group.messages.push(systemMessage);
@@ -362,9 +415,13 @@ export const StorageService = {
     return group;
   },
 
-  async removeMember(groupId: string, memberId: string, removedBy: string): Promise<boolean> {
+  async removeMember(
+    groupId: string,
+    memberId: string,
+    removedBy: string
+  ): Promise<boolean> {
     const group = await this.loadGroup(groupId);
-    if (!group || group.status === 'archived') return false;
+    if (!group || group.status === "archived") return false;
 
     // Only creator can remove members
     if (group.createdBy !== removedBy) return false;
@@ -372,11 +429,11 @@ export const StorageService = {
     // Cannot remove creator
     if (memberId === group.createdBy) return false;
 
-    const removedMember = group.members.find(m => m.id === memberId);
+    const removedMember = group.members.find((m) => m.id === memberId);
     if (!removedMember) return false;
 
     // Remove member
-    group.members = group.members.filter(m => m.id !== memberId);
+    group.members = group.members.filter((m) => m.id !== memberId);
 
     // Add system message about member removal
     const systemMessage: Message = {
@@ -384,8 +441,8 @@ export const StorageService = {
       text: `${removedMember.name}がグループから削除されました`,
       timestamp: new Date(),
       isOwnMessage: false,
-      sender: 'システム',
-      status: 'delivered' as MessageStatus,
+      sender: "システム",
+      status: "delivered" as MessageStatus,
     };
 
     group.messages.push(systemMessage);
@@ -396,40 +453,26 @@ export const StorageService = {
     return true;
   },
 
-  async markGroupAsRead(groupId: string): Promise<void> {
-    try {
-      const { active } = await this.loadGroups();
-      const group = active.find(g => g.id === groupId);
-      
-      if (group) {
-        group.unreadCount = 0;
-        await this.saveActiveGroups(active);
-      }
-    } catch (e) {
-      console.error('Failed to mark group as read:', e);
-    }
-  },
-
   getDefaultGroups(): Group[] {
     const now = new Date();
     return [
       {
-        id: 'group-1',
-        name: 'サンプル：週次ミーティング',
-        description: '1週間で自動解散するグループの例',
+        id: "group-1",
+        name: "サンプル：週次ミーティング",
+        description: "1週間で自動解散するグループの例",
         members: [
-          { id: 'you', name: 'あなた' },
-          { id: 'tanaka', name: '田中さん' },
-          { id: 'sato', name: '佐藤さん' },
-          { id: 'yamada', name: '山田さん' },
+          { id: "you", name: "あなた" },
+          { id: "tanaka", name: "田中さん" },
+          { id: "sato", name: "佐藤さん" },
+          { id: "yamada", name: "山田さん" },
         ],
         createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-        createdBy: 'tanaka',
+        createdBy: "tanaka",
         lastActivity: new Date(now.getTime() - 1000 * 60 * 30),
         unreadCount: 3,
-        status: 'active',
+        status: "active",
         settings: {
-          lifespan: '7_days',
+          lifespan: "7_days",
           expirationTime: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 5), // 5 days remaining
           warnBeforeExpiry: true,
           allowExtension: false,
@@ -437,49 +480,47 @@ export const StorageService = {
         messageCount: 2,
         messages: [
           {
-            id: 'g1-1',
-            text: '今週のミーティングの議題を共有します。',
+            id: "g1-1",
+            text: "今週のミーティングの議題を共有します。",
             timestamp: new Date(now.getTime() - 1000 * 60 * 45),
             isOwnMessage: false,
-            sender: '田中さん',
-            status: 'read' as MessageStatus,
-            readBy: ['you', 'sato', 'yamada'],
+            sender: "田中さん",
+            status: "read" as MessageStatus,
           },
           {
-            id: 'g1-2',
-            text: 'ありがとうございます。確認します。',
+            id: "g1-2",
+            text: "ありがとうございます。確認します。",
             timestamp: new Date(now.getTime() - 1000 * 60 * 30),
             isOwnMessage: true,
-            sender: 'あなた',
-            status: 'read' as MessageStatus,
-            readBy: ['tanaka', 'sato'],
+            sender: "あなた",
+            status: "read" as MessageStatus,
           },
         ],
         lastMessage: {
-          id: 'g1-2',
-          text: 'ありがとうございます。確認します。',
+          id: "g1-2",
+          text: "ありがとうございます。確認します。",
           timestamp: new Date(now.getTime() - 1000 * 60 * 30),
           isOwnMessage: true,
-          sender: 'あなた',
-          status: 'read' as MessageStatus,
+          sender: "あなた",
+          status: "read" as MessageStatus,
         },
       },
       {
-        id: 'group-2',
-        name: 'サンプル：今日のランチ',
-        description: '24時間で解散する短期グループの例',
+        id: "group-2",
+        name: "サンプル：今日のランチ",
+        description: "24時間で解散する短期グループの例",
         members: [
-          { id: 'you', name: 'あなた' },
-          { id: 'suzuki', name: '鈴木さん' },
-          { id: 'ito', name: '伊藤さん' },
+          { id: "you", name: "あなた" },
+          { id: "suzuki", name: "鈴木さん" },
+          { id: "ito", name: "伊藤さん" },
         ],
         createdAt: new Date(now.getTime() - 1000 * 60 * 60 * 3), // 3 hours ago
-        createdBy: 'suzuki',
+        createdBy: "suzuki",
         lastActivity: new Date(now.getTime() - 1000 * 60 * 60 * 2),
         unreadCount: 0,
-        status: 'active',
+        status: "active",
         settings: {
-          lifespan: '24_hours',
+          lifespan: "24_hours",
           expirationTime: new Date(now.getTime() + 1000 * 60 * 60 * 21), // 21 hours remaining
           warnBeforeExpiry: true,
           allowExtension: false,
@@ -487,31 +528,29 @@ export const StorageService = {
         messageCount: 2,
         messages: [
           {
-            id: 'g2-1',
-            text: '12時にロビーで集合しましょう！',
+            id: "g2-1",
+            text: "12時にロビーで集合しましょう！",
             timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 3),
             isOwnMessage: false,
-            sender: '鈴木さん',
-            status: 'read' as MessageStatus,
-            readBy: ['you', 'ito'],
+            sender: "鈴木さん",
+            status: "read" as MessageStatus,
           },
           {
-            id: 'g2-2',
-            text: '了解です！',
+            id: "g2-2",
+            text: "了解です！",
             timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 2),
             isOwnMessage: false,
-            sender: '伊藤さん',
-            status: 'read' as MessageStatus,
-            readBy: ['you'],
+            sender: "伊藤さん",
+            status: "read" as MessageStatus,
           },
         ],
         lastMessage: {
-          id: 'g2-2',
-          text: '了解です！',
+          id: "g2-2",
+          text: "了解です！",
           timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 2),
           isOwnMessage: false,
-          sender: '伊藤さん',
-          status: 'read' as MessageStatus,
+          sender: "伊藤さん",
+          status: "read" as MessageStatus,
         },
       },
     ];

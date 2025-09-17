@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,15 +7,15 @@ import {
   StyleSheet,
   Platform,
   RefreshControl,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../contexts/ThemeContext';
-import { getThemeColors } from '../utils/themes';
-import { Group } from '../types';
-import { StorageService } from '../services/storage';
-import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "../contexts/ThemeContext";
+import { getThemeColors } from "../utils/themes";
+import { Group } from "../types";
+import { StorageService } from "../services/storage";
+import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 
 interface ArchiveScreenProps {
   navigation: any;
@@ -44,14 +44,14 @@ const ArchiveScreen: React.FC<ArchiveScreenProps> = ({ navigation }) => {
 
   const formatDisbandReason = (reason?: string) => {
     switch (reason) {
-      case 'time_expired':
-        return '期限切れ';
-      case 'inactivity':
-        return '非アクティブ';
-      case 'message_limit':
-        return 'メッセージ上限';
+      case "time_expired":
+        return "期限切れ";
+      case "inactivity":
+        return "非アクティブ";
+      case "message_limit":
+        return "メッセージ上限";
       default:
-        return '終了';
+        return "終了";
     }
   };
 
@@ -61,28 +61,54 @@ const ArchiveScreen: React.FC<ArchiveScreenProps> = ({ navigation }) => {
         style={styles.archivedItem}
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          navigation.navigate('GroupChat', { groupId: item.id, isArchived: true });
+          navigation.navigate("GroupChat", {
+            groupId: item.id,
+            isArchived: true,
+          });
         }}
         activeOpacity={0.8}
       >
         <BlurView intensity={80} tint={theme} style={styles.blurContainer}>
           <View style={styles.archivedItemContent}>
             <View style={styles.archivedItemHeader}>
-              <View style={[styles.archivedAvatar, { backgroundColor: colors.primary + '30' }]}>
-                <Text style={[styles.archivedAvatarText, { color: colors.primary }]}>
+              <View
+                style={[
+                  styles.archivedAvatar,
+                  { backgroundColor: colors.primary + "30" },
+                ]}
+              >
+                <Text
+                  style={[styles.archivedAvatarText, { color: colors.primary }]}
+                >
                   {item.name.charAt(0).toUpperCase()}
                 </Text>
               </View>
               <View style={styles.archivedItemInfo}>
-                <Text style={[styles.archivedItemName, { color: colors.text }]} numberOfLines={1}>
+                <Text
+                  style={[styles.archivedItemName, { color: colors.text }]}
+                  numberOfLines={1}
+                >
                   {item.name}
                 </Text>
                 <View style={styles.archivedItemMeta}>
-                  <Text style={[styles.archivedItemDate, { color: colors.textSecondary }]}>
-                    {item.disbandedAt && new Date(item.disbandedAt).toLocaleDateString('ja-JP')}
+                  <Text
+                    style={[
+                      styles.archivedItemDate,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    {item.disbandedAt &&
+                      new Date(item.disbandedAt).toLocaleDateString("ja-JP")}
                   </Text>
-                  <View style={[styles.reasonBadge, { backgroundColor: colors.primary + '20' }]}>
-                    <Text style={[styles.reasonText, { color: colors.primary }]}>
+                  <View
+                    style={[
+                      styles.reasonBadge,
+                      { backgroundColor: colors.primary + "20" },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.reasonText, { color: colors.primary }]}
+                    >
                       {formatDisbandReason(item.disbandReason)}
                     </Text>
                   </View>
@@ -90,7 +116,13 @@ const ArchiveScreen: React.FC<ArchiveScreenProps> = ({ navigation }) => {
               </View>
             </View>
             {item.description && (
-              <Text style={[styles.archivedItemDescription, { color: colors.textSecondary }]} numberOfLines={2}>
+              <Text
+                style={[
+                  styles.archivedItemDescription,
+                  { color: colors.textSecondary },
+                ]}
+                numberOfLines={2}
+              >
                 {item.description}
               </Text>
             )}
@@ -109,16 +141,21 @@ const ArchiveScreen: React.FC<ArchiveScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={["top"]}
+    >
       <LinearGradient
-        colors={[colors.primary + '15', 'transparent']}
+        colors={[colors.primary + "15", "transparent"]}
         style={styles.headerGradient}
       >
         <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
             アーカイブ
           </Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+          <Text
+            style={[styles.headerSubtitle, { color: colors.textSecondary }]}
+          >
             {archivedGroups.length}個の終了グループ
           </Text>
         </View>
@@ -126,7 +163,12 @@ const ArchiveScreen: React.FC<ArchiveScreenProps> = ({ navigation }) => {
 
       {archivedGroups.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <View style={[styles.emptyIconContainer, { backgroundColor: colors.primary + '20' }]}>
+          <View
+            style={[
+              styles.emptyIconContainer,
+              { backgroundColor: colors.primary + "20" },
+            ]}
+          >
             <Text style={styles.emptyIcon}>📚</Text>
           </View>
           <Text style={[styles.emptyText, { color: colors.text }]}>
@@ -166,11 +208,11 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingTop: Platform.OS === 'ios' ? 8 : 16,
+    paddingTop: Platform.OS === "ios" ? 8 : 16,
   },
   headerTitle: {
     fontSize: 32,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: 4,
   },
   headerSubtitle: {
@@ -184,44 +226,44 @@ const styles = StyleSheet.create({
   archivedItem: {
     marginVertical: 6,
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   blurContainer: {
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   archivedItemContent: {
     padding: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   archivedItemHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
   },
   archivedAvatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   archivedAvatarText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   archivedItemInfo: {
     flex: 1,
   },
   archivedItemName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 4,
   },
   archivedItemMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   archivedItemDate: {
@@ -234,7 +276,7 @@ const styles = StyleSheet.create({
   },
   reasonText: {
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   archivedItemDescription: {
     fontSize: 13,
@@ -242,7 +284,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   archivedItemStats: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 16,
   },
   statItem: {
@@ -250,16 +292,16 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 40,
   },
   emptyIconContainer: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 20,
   },
   emptyIcon: {
@@ -267,12 +309,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
     opacity: 0.7,
   },
 });

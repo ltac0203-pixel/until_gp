@@ -39,7 +39,20 @@
       "mcp__serena-mcp-server__find_file",
       "mcp__serena-mcp-server__find_symbol",
       "mcp__serena-mcp-server__write_memory",
-      "mcp__serena-mcp-server__list_memories"
+      "mcp__serena-mcp-server__list_memories",
+      "Bash(git merge:*)",
+      "Bash(git branch:*)",
+      "mcp__serena-mcp-server__read_memory",
+      "mcp__serena-mcp-server__get_symbols_overview",
+      "mcp__serena-mcp-server__think_about_whether_you_are_done",
+      "WebSearch",
+      "Bash(npx playwright:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(npm test)",
+      "mcp__serena-mcp-server__search_for_pattern",
+      "mcp__serena-mcp-server__replace_symbol_body",
+      "Bash(git remote set-url:*)"
     ],
     "deny": [],
     "ask": []

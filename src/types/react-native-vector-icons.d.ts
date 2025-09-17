@@ -1,6 +1,6 @@
-declare module 'react-native-vector-icons/Ionicons' {
-  import { Component } from 'react';
-  import { TextStyle } from 'react-native';
+declare module "react-native-vector-icons/Ionicons" {
+  import { Component } from "react";
+  import { TextStyle } from "react-native";
 
   interface IconProps {
     name: string;

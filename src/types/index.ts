@@ -1,6 +1,10 @@
-export type MessageStatus = 'pending' | 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
+export type MessageStatus =
+  | "pending"
+  | "sending"
+  | "sent"
+  | "failed";
 
-export type AttachmentType = 'image' | 'video';
+export type AttachmentType = "image" | "video";
 
 export interface Attachment {
   id: string;
@@ -29,7 +33,6 @@ export interface Message {
   status?: MessageStatus;
   deliveryTime?: Date;
   reactions?: MessageReaction[];
-  readBy?: string[]; // Array of user IDs who have read this message
   attachments?: Attachment[]; // Media attachments
 }
 
@@ -39,13 +42,22 @@ export interface ChatUser {
   avatar?: string;
 }
 
-export type Theme = 'light' | 'dark';
+export type Theme = "light" | "dark";
 
-export type GroupStatus = 'active' | 'expiring_soon' | 'archived';
+export type GroupStatus = "active" | "expiring_soon" | "archived";
 
-export type DisbandReason = 'time_expired' | 'inactivity' | 'message_limit' | 'manual';
+export type DisbandReason =
+  | "time_expired"
+  | "inactivity"
+  | "message_limit"
+  | "manual";
 
-export type GroupLifespan = '1_hour' | '24_hours' | '3_days' | '7_days' | 'custom';
+export type GroupLifespan =
+  | "1_hour"
+  | "24_hours"
+  | "3_days"
+  | "7_days"
+  | "custom";
 
 export interface GroupSettings {
   lifespan: GroupLifespan;

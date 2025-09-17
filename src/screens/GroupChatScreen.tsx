@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -12,17 +12,17 @@ import {
   ScrollView,
   Alert,
   Share,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../contexts/ThemeContext';
-import { getThemeColors } from '../utils/themes';
-import { Message, Group } from '../types';
-import { StorageService } from '../services/storage';
-import MessageBubble from '../components/MessageBubble';
-import MessageInput from '../components/MessageInput';
-import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
-import Icon from 'react-native-vector-icons/Ionicons';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "../contexts/ThemeContext";
+import { getThemeColors } from "../utils/themes";
+import { Message, Group } from "../types";
+import { StorageService } from "../services/storage";
+import MessageBubble from "../components/MessageBubble";
+import MessageInput from "../components/MessageInput";
+import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import Icon from "react-native-vector-icons/Ionicons";
 
 interface GroupChatScreenProps {
   navigation: any;
@@ -33,7 +33,10 @@ interface GroupChatScreenProps {
   };
 }
 
-const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) => {
+const GroupChatScreen: React.FC<GroupChatScreenProps> = ({
+  navigation,
+  route,
+}) => {
   const { theme } = useTheme();
   const colors = getThemeColors(theme);
   const { groupId } = route.params;
@@ -47,11 +50,6 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
     loadGroup();
   }, [groupId]);
 
-  useEffect(() => {
-    if (group) {
-      StorageService.markGroupAsRead(groupId);
-    }
-  }, [group, groupId]);
 
   const loadGroup = async () => {
     setRefreshing(true);
@@ -66,15 +64,17 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
   const handleSendMessage = async (text: string) => {
     if (!group) return;
 
+    // Prevent messaging in expired/archived groups
+    if (group.status === "archived") return;
+
     const newMessage: Message = {
       id: Date.now().toString(),
       text,
       timestamp: new Date(),
       isOwnMessage: true,
-      sender: 'あなた',
-      status: 'sending',
+      sender: "あなた",
+      status: "sending",
       deliveryTime: new Date(Date.now() + 2000),
-      readBy: [],
     };
 
     const updatedMessages = [...messages, newMessage];
@@ -86,17 +86,17 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
       lastMessage: newMessage,
       lastActivity: new Date(),
     };
-    
+
     await StorageService.saveGroup(updatedGroup);
     setGroup(updatedGroup);
 
     setTimeout(() => {
-      const deliveredMessage = { ...newMessage, status: 'sent' as const };
-      const deliveredMessages = updatedMessages.map(msg => 
+      const deliveredMessage = { ...newMessage, status: "sent" as const };
+      const deliveredMessages = updatedMessages.map((msg) =>
         msg.id === newMessage.id ? deliveredMessage : msg
       );
       setMessages(deliveredMessages);
-      
+
       const deliveredGroup = {
         ...updatedGroup,
         messages: deliveredMessages,
@@ -111,21 +111,23 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
     }, 100);
   };
 
-
   const handleReaction = async (messageId: string, emoji: string) => {
     if (!group) return;
 
-    const updatedMessages = messages.map(msg => {
+    // Prevent reactions in expired/archived groups
+    if (group.status === "archived") return;
+
+    const updatedMessages = messages.map((msg) => {
       if (msg.id === messageId) {
         const existingReaction = msg.reactions?.find(
-          r => r.userId === 'you' && r.emoji === emoji
+          (r) => r.userId === "you" && r.emoji === emoji
         );
 
         if (existingReaction) {
           return {
             ...msg,
             reactions: msg.reactions?.filter(
-              r => !(r.userId === 'you' && r.emoji === emoji)
+              (r) => !(r.userId === "you" && r.emoji === emoji)
             ),
           };
         } else {
@@ -133,7 +135,7 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
             ...msg,
             reactions: [
               ...(msg.reactions || []),
-              { emoji, userId: 'you', timestamp: new Date() },
+              { emoji, userId: "you", timestamp: new Date() },
             ],
           };
         }
@@ -158,10 +160,10 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
     try {
       await Share.share({
         message: `FlowGroupsの招待コード: ${group.inviteCode}\n\nグループ「${group.name}」に参加しよう！`,
-        title: 'グループに招待',
+        title: "グループに招待",
       });
     } catch (error) {
-      console.error('Share failed:', error);
+      console.error("Share failed:", error);
     }
   };
 
@@ -169,19 +171,19 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
     if (!group) return;
 
     Alert.alert(
-      '招待コードを再生成',
-      '現在の招待コードは無効になります。続行しますか？',
+      "招待コードを再生成",
+      "現在の招待コードは無効になります。続行しますか？",
       [
-        { text: 'キャンセル', style: 'cancel' },
+        { text: "キャンセル", style: "cancel" },
         {
-          text: '再生成',
+          text: "再生成",
           onPress: async () => {
             const newCode = await StorageService.regenerateInviteCode(group.id);
             if (newCode) {
               const updatedGroup = await StorageService.loadGroup(group.id);
               if (updatedGroup) {
                 setGroup(updatedGroup);
-                Alert.alert('完了', `新しい招待コード: ${newCode}`);
+                Alert.alert("完了", `新しい招待コード: ${newCode}`);
               }
             }
           },
@@ -191,43 +193,42 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
   };
 
   const handleRemoveMember = async (memberId: string, memberName: string) => {
-    if (!group || group.createdBy !== 'you') return;
+    if (!group || group.createdBy !== "you") return;
 
-    Alert.alert(
-      'メンバーを削除',
-      `${memberName}をグループから削除しますか？`,
-      [
-        { text: 'キャンセル', style: 'cancel' },
-        {
-          text: '削除',
-          style: 'destructive',
-          onPress: async () => {
-            const success = await StorageService.removeMember(group.id, memberId, 'you');
-            if (success) {
-              const updatedGroup = await StorageService.loadGroup(group.id);
-              if (updatedGroup) {
-                setGroup(updatedGroup);
-                setMessages(updatedGroup.messages);
-              }
-            } else {
-              Alert.alert('エラー', 'メンバーの削除に失敗しました');
+    Alert.alert("メンバーを削除", `${memberName}をグループから削除しますか？`, [
+      { text: "キャンセル", style: "cancel" },
+      {
+        text: "削除",
+        style: "destructive",
+        onPress: async () => {
+          const success = await StorageService.removeMember(
+            group.id,
+            memberId,
+            "you"
+          );
+          if (success) {
+            const updatedGroup = await StorageService.loadGroup(group.id);
+            if (updatedGroup) {
+              setGroup(updatedGroup);
+              setMessages(updatedGroup.messages);
             }
-          },
+          } else {
+            Alert.alert("エラー", "メンバーの削除に失敗しました");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const renderMessage = ({ item }: { item: Message }) => (
-    <MessageBubble
-      message={item}
-      onReaction={handleReaction}
-    />
+    <MessageBubble message={item} onReaction={handleReaction} />
   );
 
   if (!group) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <View style={styles.loadingContainer}>
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
             読み込み中...
@@ -238,9 +239,9 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
   }
 
   return (
-    <SafeAreaView 
+    <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
-      edges={['top']}
+      edges={["top"]}
     >
       <LinearGradient
         colors={[colors.primary, colors.primaryLight]}
@@ -261,11 +262,9 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
             </View>
           </TouchableOpacity>
           <View style={styles.headerInfo}>
-            <Text style={styles.headerTitle}>
-              {group.name}
-            </Text>
+            <Text style={styles.headerTitle}>{group.name}</Text>
             <Text style={styles.memberCount}>
-              👥 {group.members.length}人のメンバー
+              {group.status === "archived" ? "📋 終了済み" : `👥 ${group.members.length}人のメンバー`}
             </Text>
           </View>
           <TouchableOpacity
@@ -284,8 +283,8 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
 
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
         <FlatList
           ref={flatListRef}
@@ -298,14 +297,21 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
           refreshing={refreshing}
           showsVerticalScrollIndicator={false}
         />
-        
-        <MessageInput
-          onSendMessage={handleSendMessage}
-          showTypingIndicator={false}
-          recipientName={group.name}
-        />
-      </KeyboardAvoidingView>
 
+        {group.status !== "archived" ? (
+          <MessageInput
+            onSendMessage={handleSendMessage}
+            showTypingIndicator={false}
+            recipientName={group.name}
+          />
+        ) : (
+          <View style={[styles.expiredGroupNotice, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.expiredGroupText, { color: colors.textSecondary }]}>
+              このグループは終了しています
+            </Text>
+          </View>
+        )}
+      </KeyboardAvoidingView>
 
       <Modal
         visible={showGroupDetails}
@@ -313,7 +319,12 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
         transparent={false}
         onRequestClose={() => setShowGroupDetails(false)}
       >
-        <SafeAreaView style={[styles.detailsContainer, { backgroundColor: colors.background }]}>
+        <SafeAreaView
+          style={[
+            styles.detailsContainer,
+            { backgroundColor: colors.background },
+          ]}
+        >
           <LinearGradient
             colors={[colors.primary, colors.primaryLight]}
             style={styles.detailsHeader}
@@ -337,53 +348,108 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
             </View>
           </LinearGradient>
 
-          <ScrollView style={styles.detailsContent} contentContainerStyle={styles.detailsContentContainer}>
+          <ScrollView
+            style={styles.detailsContent}
+            contentContainerStyle={styles.detailsContentContainer}
+          >
             {/* Group Name */}
-            <View style={[styles.detailsSection, { backgroundColor: colors.surface }]}>
-              <Text style={[styles.detailsSectionTitle, { color: colors.textSecondary }]}>
+            <View
+              style={[
+                styles.detailsSection,
+                { backgroundColor: colors.surface },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.detailsSectionTitle,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 グループ名
               </Text>
-              <Text style={[styles.detailsSectionContent, { color: colors.text }]}>
+              <Text
+                style={[styles.detailsSectionContent, { color: colors.text }]}
+              >
                 {group?.name}
               </Text>
             </View>
 
             {/* Group Description */}
             {group?.description && (
-              <View style={[styles.detailsSection, { backgroundColor: colors.surface }]}>
-                <Text style={[styles.detailsSectionTitle, { color: colors.textSecondary }]}>
+              <View
+                style={[
+                  styles.detailsSection,
+                  { backgroundColor: colors.surface },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.detailsSectionTitle,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   説明
                 </Text>
-                <Text style={[styles.detailsSectionContent, { color: colors.text }]}>
+                <Text
+                  style={[styles.detailsSectionContent, { color: colors.text }]}
+                >
                   {group.description}
                 </Text>
               </View>
             )}
 
             {/* Invite Code Section */}
-            {group?.status !== 'archived' && (
-              <View style={[styles.detailsSection, { backgroundColor: colors.surface }]}>
-                <Text style={[styles.detailsSectionTitle, { color: colors.textSecondary }]}>
+            {group?.status !== "archived" && (
+              <View
+                style={[
+                  styles.detailsSection,
+                  { backgroundColor: colors.surface },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.detailsSectionTitle,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   招待コード
                 </Text>
                 <View style={styles.inviteCodeContainer}>
-                  <Text style={[styles.inviteCode, { color: colors.primary, backgroundColor: colors.primary + '20' }]}>
-                    {group?.inviteCode || 'N/A'}
+                  <Text
+                    style={[
+                      styles.inviteCode,
+                      {
+                        color: colors.primary,
+                        backgroundColor: colors.primary + "20",
+                      },
+                    ]}
+                  >
+                    {group?.inviteCode || "N/A"}
                   </Text>
                   <View style={styles.inviteActions}>
                     <TouchableOpacity
-                      style={[styles.inviteButton, { backgroundColor: colors.primary }]}
+                      style={[
+                        styles.inviteButton,
+                        { backgroundColor: colors.primary },
+                      ]}
                       onPress={handleShareInviteCode}
                     >
                       <Icon name="share-outline" size={18} color="#FFFFFF" />
                       <Text style={styles.inviteButtonText}>共有</Text>
                     </TouchableOpacity>
-                    {group?.createdBy === 'you' && (
+                    {group?.createdBy === "you" && (
                       <TouchableOpacity
-                        style={[styles.inviteButton, { backgroundColor: colors.textSecondary }]}
+                        style={[
+                          styles.inviteButton,
+                          { backgroundColor: colors.textSecondary },
+                        ]}
                         onPress={handleRegenerateInviteCode}
                       >
-                        <Icon name="refresh-outline" size={18} color="#FFFFFF" />
+                        <Icon
+                          name="refresh-outline"
+                          size={18}
+                          color="#FFFFFF"
+                        />
                         <Text style={styles.inviteButtonText}>再生成</Text>
                       </TouchableOpacity>
                     )}
@@ -393,18 +459,41 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
             )}
 
             {/* Creator */}
-            <View style={[styles.detailsSection, { backgroundColor: colors.surface }]}>
-              <Text style={[styles.detailsSectionTitle, { color: colors.textSecondary }]}>
+            <View
+              style={[
+                styles.detailsSection,
+                { backgroundColor: colors.surface },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.detailsSectionTitle,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 作成者
               </Text>
-              <Text style={[styles.detailsSectionContent, { color: colors.text }]}>
-                {group?.members.find(member => member.id === group.createdBy)?.name || group?.createdBy}
+              <Text
+                style={[styles.detailsSectionContent, { color: colors.text }]}
+              >
+                {group?.members.find((member) => member.id === group.createdBy)
+                  ?.name || group?.createdBy}
               </Text>
             </View>
 
             {/* Members */}
-            <View style={[styles.detailsSection, { backgroundColor: colors.surface }]}>
-              <Text style={[styles.detailsSectionTitle, { color: colors.textSecondary }]}>
+            <View
+              style={[
+                styles.detailsSection,
+                { backgroundColor: colors.surface },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.detailsSectionTitle,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 参加者 ({group?.members.length}人)
               </Text>
               {group?.members.map((member, index) => (
@@ -424,33 +513,58 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({ navigation, route }) 
                       {member.name}
                     </Text>
                     {member.id === group?.createdBy && (
-                      <Text style={[styles.memberRole, { color: colors.primary }]}>
+                      <Text
+                        style={[styles.memberRole, { color: colors.primary }]}
+                      >
                         作成者
                       </Text>
                     )}
                   </View>
-                  {group?.createdBy === 'you' && member.id !== 'you' && group?.status !== 'archived' && (
-                    <TouchableOpacity
-                      style={[styles.removeMemberButton, { backgroundColor: colors.error + '20' }]}
-                      onPress={() => handleRemoveMember(member.id, member.name)}
-                    >
-                      <Icon name="close-circle" size={20} color={colors.error} />
-                    </TouchableOpacity>
-                  )}
+                  {group?.createdBy === "you" &&
+                    member.id !== "you" &&
+                    group?.status !== "archived" && (
+                      <TouchableOpacity
+                        style={[
+                          styles.removeMemberButton,
+                          { backgroundColor: colors.error + "20" },
+                        ]}
+                        onPress={() =>
+                          handleRemoveMember(member.id, member.name)
+                        }
+                      >
+                        <Icon
+                          name="close-circle"
+                          size={20}
+                          color={colors.error}
+                        />
+                      </TouchableOpacity>
+                    )}
                 </View>
               ))}
             </View>
 
             {/* Creation Date */}
-            <View style={[styles.detailsSection, { backgroundColor: colors.surface }]}>
-              <Text style={[styles.detailsSectionTitle, { color: colors.textSecondary }]}>
+            <View
+              style={[
+                styles.detailsSection,
+                { backgroundColor: colors.surface },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.detailsSectionTitle,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 作成日
               </Text>
-              <Text style={[styles.detailsSectionContent, { color: colors.text }]}>
-                {group?.createdAt.toLocaleDateString('ja-JP', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
+              <Text
+                style={[styles.detailsSectionContent, { color: colors.text }]}
+              >
+                {group?.createdAt.toLocaleDateString("ja-JP", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
                 })}
               </Text>
             </View>
@@ -467,8 +581,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     fontSize: 16,
@@ -477,11 +591,11 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: Platform.OS === 'ios' ? 8 : 16,
+    paddingTop: Platform.OS === "ios" ? 8 : 16,
   },
   backButton: {
     marginRight: 12,
@@ -490,28 +604,28 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   backButtonText: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
   },
   headerInfo: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 2,
   },
   memberCount: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.9)',
+    color: "rgba(255,255,255,0.9)",
   },
   headerSpacer: {
     width: 52,
@@ -523,14 +637,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   infoButtonText: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -550,11 +664,11 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   detailsHeaderContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingTop: Platform.OS === 'ios' ? 8 : 16,
+    paddingTop: Platform.OS === "ios" ? 8 : 16,
   },
   closeButton: {
     marginRight: 12,
@@ -563,21 +677,21 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   closeButtonText: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
   },
   detailsTitle: {
     flex: 1,
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    textAlign: "center",
   },
   detailsContent: {
     flex: 1,
@@ -589,7 +703,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -597,9 +711,9 @@ const styles = StyleSheet.create({
   },
   detailsSectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   detailsSectionContent: {
@@ -607,8 +721,8 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   memberItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 12,
     paddingVertical: 8,
   },
@@ -616,27 +730,27 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   memberAvatarText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   memberInfo: {
     flex: 1,
   },
   memberName: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 2,
   },
   memberRole: {
     fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    fontWeight: "600",
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   inviteCodeContainer: {
@@ -644,36 +758,49 @@ const styles = StyleSheet.create({
   },
   inviteCode: {
     fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 12,
     letterSpacing: 2,
   },
   inviteActions: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     gap: 12,
     marginTop: 12,
   },
   inviteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
   },
   inviteButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   removeMemberButton: {
     padding: 8,
     borderRadius: 20,
-    marginLeft: 'auto',
+    marginLeft: "auto",
+  },
+  expiredGroupNotice: {
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.1)",
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  expiredGroupText: {
+    fontSize: 16,
+    fontWeight: "500",
+    textAlign: "center",
   },
 });
 

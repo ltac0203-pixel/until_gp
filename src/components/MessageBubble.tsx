@@ -39,8 +39,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       case 'pending': return <Icon name="time-outline" size={12} color={color} />;
       case 'sending': return <Icon name="arrow-up" size={12} color={color} />;
       case 'sent': return <Icon name="checkmark" size={12} color={color} />;
-      case 'delivered': return <Icon name="checkmark-done" size={12} color={color} />;
-      case 'read': return <Icon name="eye" size={12} color={color} />;
       case 'failed': return <Icon name="alert-circle" size={12} color={color} />;
       default: return null;
     }
@@ -51,8 +49,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       case 'pending': return colors.statusPending;
       case 'sending': return colors.textSecondary;
       case 'sent': return colors.statusSent;
-      case 'delivered': return colors.statusDelivered;
-      case 'read': return colors.statusRead;
       case 'failed': return colors.statusFailed;
       default: return colors.textSecondary;
     }
@@ -130,11 +126,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           <View style={styles.statusIcon}>
             {getStatusIcon(message.status, getStatusColor(message.status))}
           </View>
-        )}
-        {message.readBy && message.readBy.length > 0 && (
-          <Text style={[styles.readStatusText, { color: colors.statusRead }]}>
-            既読{message.readBy.length}
-          </Text>
         )}
       </View>
       
@@ -241,11 +232,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginLeft: 4,
     fontWeight: '500',
-  },
-  readStatusText: {
-    fontSize: 10,
-    fontWeight: '500',
-    marginLeft: 8,
   },
 });
 

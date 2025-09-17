@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,16 +10,21 @@ import {
   Alert,
   TextInput,
   Modal,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../contexts/ThemeContext';
-import { getThemeColors } from '../utils/themes';
-import { FlowGroupsSettings, GroupLifespan, Theme, UserProfile } from '../types';
-import { StorageService } from '../services/storage';
-import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-import Icon from 'react-native-vector-icons/Ionicons';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "../contexts/ThemeContext";
+import { getThemeColors } from "../utils/themes";
+import {
+  FlowGroupsSettings,
+  GroupLifespan,
+  Theme,
+  UserProfile,
+} from "../types";
+import { StorageService } from "../services/storage";
+import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
+import Icon from "react-native-vector-icons/Ionicons";
 
 const SettingsScreen: React.FC = () => {
   const { theme, setTheme } = useTheme();
@@ -28,13 +33,13 @@ const SettingsScreen: React.FC = () => {
     theme: theme,
     enableHaptics: true,
     enableTypingIndicator: true,
-    defaultGroupLifespan: '24_hours',
+    defaultGroupLifespan: "24_hours",
     showExpirationWarnings: true,
     archiveRetentionDays: 30,
     autoJoinSuggestions: false,
   });
   const [showProfileEdit, setShowProfileEdit] = useState(false);
-  const [editedName, setEditedName] = useState('');
+  const [editedName, setEditedName] = useState("");
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
@@ -60,7 +65,7 @@ const SettingsScreen: React.FC = () => {
 
   const handleSaveProfile = async () => {
     if (!editedName.trim()) {
-      Alert.alert('エラー', '名前を入力してください');
+      Alert.alert("エラー", "名前を入力してください");
       return;
     }
 
@@ -72,7 +77,7 @@ const SettingsScreen: React.FC = () => {
       await StorageService.updateCurrentUser(updatedUser);
       setCurrentUser(updatedUser);
       setShowProfileEdit(false);
-      Alert.alert('完了', 'プロファイルが更新されました');
+      Alert.alert("完了", "プロファイルが更新されました");
     }
   };
 
@@ -85,7 +90,10 @@ const SettingsScreen: React.FC = () => {
     await saveSettings(newSettings);
   };
 
-  const handleToggleSetting = async (key: keyof FlowGroupsSettings, value: boolean) => {
+  const handleToggleSetting = async (
+    key: keyof FlowGroupsSettings,
+    value: boolean
+  ) => {
     if (settings.enableHaptics) {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
@@ -95,25 +103,30 @@ const SettingsScreen: React.FC = () => {
 
   const handleClearData = () => {
     Alert.alert(
-      'データをクリア',
-      'すべてのデータを削除しますか？この操作は取り消せません。',
+      "データをクリア",
+      "すべてのデータを削除しますか？この操作は取り消せません。",
       [
-        { text: 'キャンセル', style: 'cancel' },
+        { text: "キャンセル", style: "cancel" },
         {
-          text: '削除',
-          style: 'destructive',
+          text: "削除",
+          style: "destructive",
           onPress: async () => {
             await StorageService.clearAll();
-            Alert.alert('完了', 'すべてのデータがクリアされました。');
+            Alert.alert("完了", "すべてのデータがクリアされました。");
           },
         },
       ]
     );
   };
 
-  const SettingSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  const SettingSection: React.FC<{
+    title: string;
+    children: React.ReactNode;
+  }> = ({ title, children }) => (
     <View style={styles.section}>
-      <Text style={[styles.sectionTitle, { color: colors.primary }]}>{title}</Text>
+      <Text style={[styles.sectionTitle, { color: colors.primary }]}>
+        {title}
+      </Text>
       <BlurView intensity={60} tint={theme} style={styles.sectionBlur}>
         <View style={styles.sectionContent}>{children}</View>
       </BlurView>
@@ -133,23 +146,31 @@ const SettingsScreen: React.FC = () => {
       disabled={!onPress}
     >
       <View style={styles.settingRowLeft}>
-        <Icon name={icon} size={20} color={colors.text} style={styles.settingIcon} />
-        <Text style={[styles.settingLabel, { color: colors.text }]}>{label}</Text>
+        <Icon
+          name={icon}
+          size={20}
+          color={colors.text}
+          style={styles.settingIcon}
+        />
+        <Text style={[styles.settingLabel, { color: colors.text }]}>
+          {label}
+        </Text>
       </View>
       {value}
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={["top"]}
+    >
       <LinearGradient
-        colors={[colors.primary + '15', 'transparent']}
+        colors={[colors.primary + "15", "transparent"]}
         style={styles.headerGradient}
       >
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            設定
-          </Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>設定</Text>
         </View>
       </LinearGradient>
 
@@ -162,7 +183,7 @@ const SettingsScreen: React.FC = () => {
           <TouchableOpacity
             style={styles.profileRow}
             onPress={() => {
-              setEditedName(currentUser?.name || '');
+              setEditedName(currentUser?.name || "");
               setShowProfileEdit(true);
             }}
           >
@@ -173,18 +194,22 @@ const SettingsScreen: React.FC = () => {
               end={{ x: 1, y: 1 }}
             >
               <Text style={styles.profileAvatarText}>
-                {currentUser?.name.charAt(0).toUpperCase() || 'U'}
+                {currentUser?.name.charAt(0).toUpperCase() || "U"}
               </Text>
             </LinearGradient>
             <View style={styles.profileInfo}>
               <Text style={[styles.profileName, { color: colors.text }]}>
-                {currentUser?.name || 'ユーザー'}
+                {currentUser?.name || "ユーザー"}
               </Text>
               <Text style={[styles.profileId, { color: colors.textSecondary }]}>
-                ID: {currentUser?.id || 'unknown'}
+                ID: {currentUser?.id || "unknown"}
               </Text>
             </View>
-            <Icon name="chevron-forward" size={20} color={colors.textSecondary} />
+            <Icon
+              name="chevron-forward"
+              size={20}
+              color={colors.textSecondary}
+            />
           </TouchableOpacity>
         </SettingSection>
 
@@ -197,17 +222,35 @@ const SettingsScreen: React.FC = () => {
                 <TouchableOpacity
                   style={[
                     styles.themeButton,
-                    theme === 'light' && styles.themeButtonActive,
-                    { borderColor: theme === 'light' ? colors.primary : colors.border }
+                    theme === "light" && styles.themeButtonActive,
+                    {
+                      borderColor:
+                        theme === "light" ? colors.primary : colors.border,
+                    },
                   ]}
-                  onPress={() => handleThemeChange('light')}
+                  onPress={() => handleThemeChange("light")}
                 >
-                  <Text style={[
-                    styles.themeButtonText,
-                    { color: theme === 'light' ? colors.primary : colors.textSecondary }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.themeButtonText,
+                      {
+                        color:
+                          theme === "light"
+                            ? colors.primary
+                            : colors.textSecondary,
+                      },
+                    ]}
+                  >
                     <View style={styles.themeButtonContent}>
-                      <Icon name="sunny-outline" size={14} color={theme === 'light' ? colors.primary : colors.textSecondary} />
+                      <Icon
+                        name="sunny-outline"
+                        size={14}
+                        color={
+                          theme === "light"
+                            ? colors.primary
+                            : colors.textSecondary
+                        }
+                      />
                       <Text>ライト</Text>
                     </View>
                   </Text>
@@ -215,17 +258,35 @@ const SettingsScreen: React.FC = () => {
                 <TouchableOpacity
                   style={[
                     styles.themeButton,
-                    theme === 'dark' && styles.themeButtonActive,
-                    { borderColor: theme === 'dark' ? colors.primary : colors.border }
+                    theme === "dark" && styles.themeButtonActive,
+                    {
+                      borderColor:
+                        theme === "dark" ? colors.primary : colors.border,
+                    },
                   ]}
-                  onPress={() => handleThemeChange('dark')}
+                  onPress={() => handleThemeChange("dark")}
                 >
-                  <Text style={[
-                    styles.themeButtonText,
-                    { color: theme === 'dark' ? colors.primary : colors.textSecondary }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.themeButtonText,
+                      {
+                        color:
+                          theme === "dark"
+                            ? colors.primary
+                            : colors.textSecondary,
+                      },
+                    ]}
+                  >
                     <View style={styles.themeButtonContent}>
-                      <Icon name="moon-outline" size={14} color={theme === 'dark' ? colors.primary : colors.textSecondary} />
+                      <Icon
+                        name="moon-outline"
+                        size={14}
+                        color={
+                          theme === "dark"
+                            ? colors.primary
+                            : colors.textSecondary
+                        }
+                      />
                       <Text>ダーク</Text>
                     </View>
                   </Text>
@@ -240,12 +301,14 @@ const SettingsScreen: React.FC = () => {
             icon="timer-outline"
             label="デフォルトの有効期限"
             value={
-              <Text style={[styles.settingValue, { color: colors.textSecondary }]}>
-                {settings.defaultGroupLifespan === '1_hour' && '1時間'}
-                {settings.defaultGroupLifespan === '24_hours' && '24時間'}
-                {settings.defaultGroupLifespan === '3_days' && '3日間'}
-                {settings.defaultGroupLifespan === '7_days' && '1週間'}
-                {settings.defaultGroupLifespan === 'custom' && 'カスタム'}
+              <Text
+                style={[styles.settingValue, { color: colors.textSecondary }]}
+              >
+                {settings.defaultGroupLifespan === "1_hour" && "1時間"}
+                {settings.defaultGroupLifespan === "24_hours" && "24時間"}
+                {settings.defaultGroupLifespan === "3_days" && "3日間"}
+                {settings.defaultGroupLifespan === "7_days" && "1週間"}
+                {settings.defaultGroupLifespan === "custom" && "カスタム"}
               </Text>
             }
           />
@@ -255,9 +318,16 @@ const SettingsScreen: React.FC = () => {
             value={
               <Switch
                 value={settings.showExpirationWarnings}
-                onValueChange={(value) => handleToggleSetting('showExpirationWarnings', value)}
-                trackColor={{ false: colors.border, true: colors.primary + '80' }}
-                thumbColor={settings.showExpirationWarnings ? colors.primary : '#f4f3f4'}
+                onValueChange={(value) =>
+                  handleToggleSetting("showExpirationWarnings", value)
+                }
+                trackColor={{
+                  false: colors.border,
+                  true: colors.primary + "80",
+                }}
+                thumbColor={
+                  settings.showExpirationWarnings ? colors.primary : "#f4f3f4"
+                }
               />
             }
           />
@@ -271,16 +341,26 @@ const SettingsScreen: React.FC = () => {
               <View style={styles.hapticRow}>
                 <Switch
                   value={settings.enableHaptics}
-                  onValueChange={(value) => handleToggleSetting('enableHaptics', value)}
-                  trackColor={{ false: colors.border, true: colors.primary + '80' }}
-                  thumbColor={settings.enableHaptics ? colors.primary : '#f4f3f4'}
+                  onValueChange={(value) =>
+                    handleToggleSetting("enableHaptics", value)
+                  }
+                  trackColor={{
+                    false: colors.border,
+                    true: colors.primary + "80",
+                  }}
+                  thumbColor={
+                    settings.enableHaptics ? colors.primary : "#f4f3f4"
+                  }
                 />
               </View>
             }
           />
           {settings.enableHaptics && (
             <TouchableOpacity
-              style={[styles.testButton, { backgroundColor: colors.primary + '20' }]}
+              style={[
+                styles.testButton,
+                { backgroundColor: colors.primary + "20" },
+              ]}
               onPress={async () => {
                 await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               }}
@@ -294,7 +374,10 @@ const SettingsScreen: React.FC = () => {
 
         <SettingSection title="データ管理">
           <TouchableOpacity
-            style={[styles.dangerButton, { backgroundColor: colors.error + '15' }]}
+            style={[
+              styles.dangerButton,
+              { backgroundColor: colors.error + "15" },
+            ]}
             onPress={handleClearData}
           >
             <View style={styles.dangerButtonContent}>
@@ -324,7 +407,9 @@ const SettingsScreen: React.FC = () => {
         onRequestClose={() => setShowProfileEdit(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+          <View
+            style={[styles.modalContent, { backgroundColor: colors.surface }]}
+          >
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: colors.text }]}>
                 プロファイル編集
@@ -342,11 +427,14 @@ const SettingsScreen: React.FC = () => {
                 表示名
               </Text>
               <TextInput
-                style={[styles.textInput, {
-                  color: colors.text,
-                  backgroundColor: colors.inputBackground,
-                  borderColor: colors.border,
-                }]}
+                style={[
+                  styles.textInput,
+                  {
+                    color: colors.text,
+                    backgroundColor: colors.inputBackground,
+                    borderColor: colors.border,
+                  },
+                ]}
                 value={editedName}
                 onChangeText={setEditedName}
                 placeholder="名前を入力"
@@ -365,10 +453,13 @@ const SettingsScreen: React.FC = () => {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: colors.primary }]}
+                style={[
+                  styles.modalButton,
+                  { backgroundColor: colors.primary },
+                ]}
                 onPress={handleSaveProfile}
               >
-                <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>
+                <Text style={[styles.modalButtonText, { color: "#FFFFFF" }]}>
                   保存
                 </Text>
               </TouchableOpacity>
@@ -390,11 +481,11 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingTop: Platform.OS === 'ios' ? 8 : 16,
+    paddingTop: Platform.OS === "ios" ? 8 : 16,
   },
   headerTitle: {
     fontSize: 32,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   scrollView: {
     flex: 1,
@@ -408,32 +499,32 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 13,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    fontWeight: "600",
+    textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 8,
     marginLeft: 4,
   },
   sectionBlur: {
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   sectionContent: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 16,
   },
   settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: "rgba(255, 255, 255, 0.1)",
   },
   settingRowLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   settingIcon: {
@@ -446,7 +537,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   themeButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   themeButton: {
@@ -456,20 +547,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   themeButtonActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   themeButtonText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   themeButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   hapticRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   testButton: {
     marginHorizontal: 16,
@@ -477,34 +568,34 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   testButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   dangerButton: {
     padding: 16,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   dangerButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   dangerButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   footer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 40,
     marginBottom: 20,
   },
   footerText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 4,
   },
   footerSubtext: {
@@ -512,29 +603,29 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
   },
   profileAvatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   profileAvatarText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 2,
   },
   profileId: {
@@ -542,25 +633,25 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    width: '90%',
+    width: "90%",
     maxWidth: 400,
     borderRadius: 20,
     padding: 20,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   modalCloseButton: {
     padding: 4,
@@ -570,7 +661,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
   },
   textInput: {
@@ -580,18 +671,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   modalFooter: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   modalButton: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

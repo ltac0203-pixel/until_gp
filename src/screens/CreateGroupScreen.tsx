@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,60 +9,79 @@ import {
   Platform,
   Alert,
   KeyboardAvoidingView,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { useTheme } from '../contexts/ThemeContext';
-import { getThemeColors } from '../utils/themes';
-import { GroupLifespan } from '../types';
-import { StorageService } from '../services/storage';
-import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-import Icon from 'react-native-vector-icons/Ionicons';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useTheme } from "../contexts/ThemeContext";
+import { getThemeColors } from "../utils/themes";
+import { GroupLifespan } from "../types";
+import { StorageService } from "../services/storage";
+import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
+import Icon from "react-native-vector-icons/Ionicons";
 
 interface CreateGroupScreenProps {
   navigation: any;
 }
 
-const LIFESPAN_OPTIONS: { value: GroupLifespan; label: string; duration: number; icon: string }[] = [
-  { value: '7_days', label: '1週間', duration: 7 * 24 * 60 * 60 * 1000, icon: 'calendar-outline' },
-  { value: 'custom', label: 'カスタム', duration: 0, icon: 'settings-outline' },
+const LIFESPAN_OPTIONS: {
+  value: GroupLifespan;
+  label: string;
+  duration: number;
+  icon: string;
+}[] = [
+  {
+    value: "7_days",
+    label: "1週間",
+    duration: 7 * 24 * 60 * 60 * 1000,
+    icon: "calendar-outline",
+  },
+  { value: "custom", label: "カスタム", duration: 0, icon: "settings-outline" },
 ];
 
-const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => {
+const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({
+  navigation,
+}) => {
   const { theme } = useTheme();
   const colors = getThemeColors(theme);
-  const [groupName, setGroupName] = useState('');
-  const [groupDescription, setGroupDescription] = useState('');
-  const [selectedLifespan, setSelectedLifespan] = useState<GroupLifespan>('7_days');
-  const [customDate, setCustomDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+  const [groupName, setGroupName] = useState("");
+  const [groupDescription, setGroupDescription] = useState("");
+  const [selectedLifespan, setSelectedLifespan] =
+    useState<GroupLifespan>("7_days");
+  const [customDate, setCustomDate] = useState(
+    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  );
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
-      Alert.alert('エラー', 'グループ名を入力してください');
+      Alert.alert("エラー", "グループ名を入力してください");
       return;
     }
 
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     let expirationTime: Date;
-    if (selectedLifespan === 'custom') {
+    if (selectedLifespan === "custom") {
       const maxDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       if (customDate.getTime() > maxDate.getTime()) {
-        Alert.alert('エラー', '有効期限は最大30日までです');
+        Alert.alert("エラー", "有効期限は最大30日までです");
         return;
       }
       if (customDate.getTime() <= Date.now()) {
-        Alert.alert('エラー', '有効期限は未来の日時を設定してください');
+        Alert.alert("エラー", "有効期限は未来の日時を設定してください");
         return;
       }
       expirationTime = customDate;
     } else {
-      const lifespanOption = LIFESPAN_OPTIONS.find(opt => opt.value === selectedLifespan);
-      expirationTime = new Date(Date.now() + (lifespanOption?.duration || 86400000));
+      const lifespanOption = LIFESPAN_OPTIONS.find(
+        (opt) => opt.value === selectedLifespan
+      );
+      expirationTime = new Date(
+        Date.now() + (lifespanOption?.duration || 86400000)
+      );
     }
 
     const newGroup = await StorageService.createGroup(
@@ -73,8 +92,8 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
     );
 
     // Navigate to the newly created group
-    navigation.navigate('Home');
-    navigation.navigate('GroupChat', { groupId: newGroup.id });
+    navigation.navigate("Home");
+    navigation.navigate("GroupChat", { groupId: newGroup.id });
   };
 
   const onDateChange = (event: any, selectedDate?: Date) => {
@@ -87,7 +106,7 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
 
       const maxDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       if (newDate.getTime() > maxDate.getTime()) {
-        Alert.alert('エラー', '有効期限は最大30日までです');
+        Alert.alert("エラー", "有効期限は最大30日までです");
         setCustomDate(maxDate);
       } else {
         setCustomDate(newDate);
@@ -106,9 +125,12 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={["top"]}
+    >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
         <ScrollView
@@ -117,14 +139,16 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
           showsVerticalScrollIndicator={false}
         >
           <LinearGradient
-            colors={[colors.primary + '15', 'transparent']}
+            colors={[colors.primary + "15", "transparent"]}
             style={styles.headerGradient}
           >
             <View style={styles.header}>
               <Text style={[styles.headerTitle, { color: colors.text }]}>
                 新規グループ
               </Text>
-              <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.headerSubtitle, { color: colors.textSecondary }]}
+              >
                 期限付きグループを作成
               </Text>
             </View>
@@ -132,12 +156,14 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
 
           <View style={styles.formContainer}>
             <View style={styles.inputSection}>
-              <Text style={[styles.inputLabel, { color: colors.text }]}>グループ名</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>
+                グループ名
+              </Text>
               <BlurView intensity={60} tint={theme} style={styles.inputBlur}>
                 <TextInput
                   style={[styles.input, { color: colors.text }]}
                   placeholder="グループ名を入力"
-                  placeholderTextColor={colors.textSecondary + '80'}
+                  placeholderTextColor={colors.textSecondary + "80"}
                   value={groupName}
                   onChangeText={setGroupName}
                   maxLength={50}
@@ -146,12 +172,18 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={[styles.inputLabel, { color: colors.text }]}>説明（任意）</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>
+                説明（任意）
+              </Text>
               <BlurView intensity={60} tint={theme} style={styles.inputBlur}>
                 <TextInput
-                  style={[styles.input, styles.textArea, { color: colors.text }]}
+                  style={[
+                    styles.input,
+                    styles.textArea,
+                    { color: colors.text },
+                  ]}
                   placeholder="グループの説明を入力"
-                  placeholderTextColor={colors.textSecondary + '80'}
+                  placeholderTextColor={colors.textSecondary + "80"}
                   value={groupDescription}
                   onChangeText={setGroupDescription}
                   multiline
@@ -162,14 +194,17 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
             </View>
 
             <View style={styles.inputSection}>
-              <Text style={[styles.inputLabel, { color: colors.text }]}>有効期限</Text>
+              <Text style={[styles.inputLabel, { color: colors.text }]}>
+                有効期限
+              </Text>
               <View style={styles.lifespanGrid}>
                 {LIFESPAN_OPTIONS.map((option) => (
                   <TouchableOpacity
                     key={option.value}
                     style={[
                       styles.lifespanCard,
-                      selectedLifespan === option.value && styles.lifespanCardActive
+                      selectedLifespan === option.value &&
+                        styles.lifespanCardActive,
                     ]}
                     onPress={() => {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -181,15 +216,34 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
                       tint={theme}
                       style={styles.lifespanBlur}
                     >
-                      <View style={[
-                        styles.lifespanContent,
-                        selectedLifespan === option.value && { backgroundColor: colors.primary + '20' }
-                      ]}>
-                        <Icon name={option.icon} size={24} color={selectedLifespan === option.value ? colors.primary : colors.text} />
-                        <Text style={[
-                          styles.lifespanLabel,
-                          { color: selectedLifespan === option.value ? colors.primary : colors.text }
-                        ]}>
+                      <View
+                        style={[
+                          styles.lifespanContent,
+                          selectedLifespan === option.value && {
+                            backgroundColor: colors.primary + "20",
+                          },
+                        ]}
+                      >
+                        <Icon
+                          name={option.icon}
+                          size={24}
+                          color={
+                            selectedLifespan === option.value
+                              ? colors.primary
+                              : colors.text
+                          }
+                        />
+                        <Text
+                          style={[
+                            styles.lifespanLabel,
+                            {
+                              color:
+                                selectedLifespan === option.value
+                                  ? colors.primary
+                                  : colors.text,
+                            },
+                          ]}
+                        >
                           {option.label}
                         </Text>
                       </View>
@@ -198,81 +252,160 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
                 ))}
               </View>
 
-
-              {selectedLifespan === 'custom' && (
-                <BlurView intensity={60} tint={theme} style={styles.customDateContainer}>
+              {selectedLifespan === "custom" && (
+                <BlurView
+                  intensity={60}
+                  tint={theme}
+                  style={styles.customDateContainer}
+                >
                   <View style={styles.customDateContent}>
-                    <Text style={[styles.customDateLabel, { color: colors.text }]}>
+                    <Text
+                      style={[styles.customDateLabel, { color: colors.text }]}
+                    >
                       解散日時を選択
                     </Text>
                     <View style={styles.dateTimeRow}>
                       <TouchableOpacity
-                        style={[styles.dateTimeButton, { backgroundColor: colors.primary + '15' }]}
+                        style={[
+                          styles.dateTimeButton,
+                          { backgroundColor: colors.primary + "15" },
+                        ]}
                         onPress={() => {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          Haptics.impactAsync(
+                            Haptics.ImpactFeedbackStyle.Light
+                          );
                           setShowDatePicker(true);
                         }}
                       >
                         <View style={styles.dateTimeButtonContent}>
-                          <Icon name="calendar-outline" size={16} color={colors.primary} />
-                          <Text style={[styles.dateTimeButtonText, { color: colors.primary }]}>
-                            {customDate.toLocaleDateString('ja-JP')}
+                          <Icon
+                            name="calendar-outline"
+                            size={16}
+                            color={colors.primary}
+                          />
+                          <Text
+                            style={[
+                              styles.dateTimeButtonText,
+                              { color: colors.primary },
+                            ]}
+                          >
+                            {customDate.toLocaleDateString("ja-JP")}
                           </Text>
                         </View>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[styles.dateTimeButton, { backgroundColor: colors.primary + '15' }]}
+                        style={[
+                          styles.dateTimeButton,
+                          { backgroundColor: colors.primary + "15" },
+                        ]}
                         onPress={() => {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          Haptics.impactAsync(
+                            Haptics.ImpactFeedbackStyle.Light
+                          );
                           setShowTimePicker(true);
                         }}
                       >
                         <View style={styles.dateTimeButtonContent}>
-                          <Icon name="time-outline" size={16} color={colors.primary} />
-                          <Text style={[styles.dateTimeButtonText, { color: colors.primary }]}>
-                            {customDate.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
+                          <Icon
+                            name="time-outline"
+                            size={16}
+                            color={colors.primary}
+                          />
+                          <Text
+                            style={[
+                              styles.dateTimeButtonText,
+                              { color: colors.primary },
+                            ]}
+                          >
+                            {customDate.toLocaleTimeString("ja-JP", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </Text>
                         </View>
                       </TouchableOpacity>
                     </View>
                     <View style={styles.quickDateOptions}>
-                      <Text style={[styles.quickDateLabel, { color: colors.textSecondary }]}>クイック選択:</Text>
+                      <Text
+                        style={[
+                          styles.quickDateLabel,
+                          { color: colors.textSecondary },
+                        ]}
+                      >
+                        クイック選択:
+                      </Text>
                       <View style={styles.quickDateButtons}>
                         <TouchableOpacity
-                          style={[styles.quickDateButton, { borderColor: colors.border }]}
+                          style={[
+                            styles.quickDateButton,
+                            { borderColor: colors.border },
+                          ]}
                           onPress={() => {
                             const tomorrow = new Date();
                             tomorrow.setDate(tomorrow.getDate() + 1);
                             tomorrow.setHours(12, 0, 0, 0);
                             setCustomDate(tomorrow);
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            Haptics.impactAsync(
+                              Haptics.ImpactFeedbackStyle.Light
+                            );
                           }}
                         >
-                          <Text style={[styles.quickDateButtonText, { color: colors.textSecondary }]}>明日</Text>
+                          <Text
+                            style={[
+                              styles.quickDateButtonText,
+                              { color: colors.textSecondary },
+                            ]}
+                          >
+                            明日
+                          </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                          style={[styles.quickDateButton, { borderColor: colors.border }]}
+                          style={[
+                            styles.quickDateButton,
+                            { borderColor: colors.border },
+                          ]}
                           onPress={() => {
                             const weekEnd = new Date();
                             weekEnd.setDate(weekEnd.getDate() + 7);
                             weekEnd.setHours(12, 0, 0, 0);
                             setCustomDate(weekEnd);
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            Haptics.impactAsync(
+                              Haptics.ImpactFeedbackStyle.Light
+                            );
                           }}
                         >
-                          <Text style={[styles.quickDateButtonText, { color: colors.textSecondary }]}>1週間後</Text>
+                          <Text
+                            style={[
+                              styles.quickDateButtonText,
+                              { color: colors.textSecondary },
+                            ]}
+                          >
+                            1週間後
+                          </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                          style={[styles.quickDateButton, { borderColor: colors.border }]}
+                          style={[
+                            styles.quickDateButton,
+                            { borderColor: colors.border },
+                          ]}
                           onPress={() => {
                             const twoWeeks = new Date();
                             twoWeeks.setDate(twoWeeks.getDate() + 14);
                             twoWeeks.setHours(12, 0, 0, 0);
                             setCustomDate(twoWeeks);
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            Haptics.impactAsync(
+                              Haptics.ImpactFeedbackStyle.Light
+                            );
                           }}
                         >
-                          <Text style={[styles.quickDateButtonText, { color: colors.textSecondary }]}>2週間後</Text>
+                          <Text
+                            style={[
+                              styles.quickDateButtonText,
+                              { color: colors.textSecondary },
+                            ]}
+                          >
+                            2週間後
+                          </Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -284,8 +417,15 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
             <View style={styles.infoBox}>
               <BlurView intensity={40} tint={theme} style={styles.infoBlur}>
                 <View style={styles.infoContent}>
-                  <Icon name="information-circle-outline" size={20} color={colors.textSecondary} style={styles.infoIcon} />
-                  <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+                  <Icon
+                    name="information-circle-outline"
+                    size={20}
+                    color={colors.textSecondary}
+                    style={styles.infoIcon}
+                  />
+                  <Text
+                    style={[styles.infoText, { color: colors.textSecondary }]}
+                  >
                     グループは期限が来ると自動的に解散し、アーカイブに保存されます
                   </Text>
                 </View>
@@ -297,45 +437,44 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({ navigation }) => 
             <TouchableOpacity
               style={[
                 styles.createButton,
-                !groupName.trim() && styles.createButtonDisabled
+                !groupName.trim() && styles.createButtonDisabled,
               ]}
               onPress={handleCreateGroup}
               disabled={!groupName.trim()}
             >
               <LinearGradient
-                colors={groupName.trim()
-                  ? [colors.primary, colors.primaryDark]
-                  : [colors.disabled, colors.disabled]
+                colors={
+                  groupName.trim()
+                    ? [colors.primary, colors.primaryDark]
+                    : [colors.disabled, colors.disabled]
                 }
                 style={styles.createButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Text style={styles.createButtonText}>
-                  グループを作成
-                </Text>
+                <Text style={styles.createButtonText}>グループを作成</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {showDatePicker && Platform.OS !== 'web' && (
+      {showDatePicker && Platform.OS !== "web" && (
         <DateTimePicker
           value={customDate}
           mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={onDateChange}
           maximumDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)}
           minimumDate={new Date()}
         />
       )}
 
-      {showTimePicker && Platform.OS !== 'web' && (
+      {showTimePicker && Platform.OS !== "web" && (
         <DateTimePicker
           value={customDate}
           mode="time"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={onTimeChange}
         />
       )}
@@ -362,11 +501,11 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingTop: Platform.OS === 'ios' ? 8 : 16,
+    paddingTop: Platform.OS === "ios" ? 8 : 16,
   },
   headerTitle: {
     fontSize: 32,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: 4,
   },
   headerSubtitle: {
@@ -381,33 +520,33 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
     marginLeft: 4,
   },
   inputBlur: {
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   input: {
     padding: 16,
     fontSize: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   textArea: {
     minHeight: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   lifespanGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
   },
   lifespanCard: {
-    width: '47%',
+    width: "47%",
     height: 80,
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   lifespanCardActive: {
     transform: [{ scale: 0.95 }],
@@ -418,32 +557,32 @@ const styles = StyleSheet.create({
   },
   lifespanContent: {
     flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     gap: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   lifespanLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   customDateContainer: {
     marginTop: 12,
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   customDateContent: {
     padding: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   customDateLabel: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 12,
   },
   dateTimeRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
     marginBottom: 12,
   },
@@ -451,30 +590,30 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   dateTimeButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   dateTimeButtonText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   infoBox: {
     marginTop: 24,
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   infoBlur: {
     borderRadius: 12,
   },
   infoContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: "rgba(255, 255, 255, 0.03)",
   },
   infoIcon: {
     marginRight: 12,
@@ -490,30 +629,30 @@ const styles = StyleSheet.create({
   },
   createButton: {
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   createButtonDisabled: {
     opacity: 0.5,
   },
   createButtonGradient: {
     paddingVertical: 18,
-    alignItems: 'center',
+    alignItems: "center",
   },
   createButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   quickDateOptions: {
     marginTop: 4,
   },
   quickDateLabel: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 8,
   },
   quickDateButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   quickDateButton: {
@@ -522,11 +661,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     borderWidth: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   quickDateButtonText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });
 

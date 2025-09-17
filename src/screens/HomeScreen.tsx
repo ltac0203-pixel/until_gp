@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,23 +9,22 @@ import {
   Animated,
   Dimensions,
   RefreshControl,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
-import { useTheme } from '../contexts/ThemeContext';
-import { getThemeColors } from '../utils/themes';
-import { Group } from '../types';
-import { StorageService } from '../services/storage';
-import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
+import { useTheme } from "../contexts/ThemeContext";
+import { getThemeColors } from "../utils/themes";
+import { Group } from "../types";
+import { StorageService } from "../services/storage";
+import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 interface HomeScreenProps {
   navigation: any;
 }
-
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
@@ -40,7 +39,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       setCurrentTime(new Date());
       checkExpiredGroups();
     }, 1000);
-    
+
     return () => clearInterval(timer);
   }, []);
 
@@ -53,7 +52,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const loadGroups = async () => {
     const { active } = await StorageService.loadGroups();
     const sortedActive = active
-      .filter(g => g.status === 'active' || g.status === 'expiring_soon')
+      .filter((g) => g.status === "active" || g.status === "expiring_soon")
       .sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime());
     setGroups(sortedActive);
   };
@@ -67,13 +66,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const checkExpiredGroups = async () => {
     const now = new Date();
     let hasExpired = false;
-    
-    groups.forEach(group => {
+
+    groups.forEach((group) => {
       if (group.settings.expirationTime.getTime() <= now.getTime()) {
         hasExpired = true;
       }
     });
-    
+
     if (hasExpired) {
       await StorageService.processExpiredGroups();
       loadGroups();
@@ -83,21 +82,24 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const formatTimeRemaining = (expirationTime: Date): string => {
     const now = currentTime;
     const diff = expirationTime.getTime() - now.getTime();
-    
-    if (diff <= 0) return '期限切れ';
-    
+
+    if (diff <= 0) return "期限切れ";
+
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
+
     if (days > 0) return `${days}日 ${hours}時間`;
     if (hours > 0) return `${hours}時間 ${minutes}分`;
     if (minutes > 0) return `${minutes}分 ${seconds}秒`;
     return `${seconds}秒`;
   };
 
-  const getExpirationProgress = (createdAt: Date, expirationTime: Date): number => {
+  const getExpirationProgress = (
+    createdAt: Date,
+    expirationTime: Date
+  ): number => {
     const now = currentTime;
     const total = expirationTime.getTime() - createdAt.getTime();
     const elapsed = now.getTime() - createdAt.getTime();
@@ -106,25 +108,27 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   };
 
   const getExpirationColor = (progress: number): string => {
-    if (progress > 0.5) return colors.success || '#4CAF50';
-    if (progress > 0.2) return colors.warning || '#FFC107';
-    return colors.error || '#F44336';
+    if (progress > 0.5) return colors.success || "#4CAF50";
+    if (progress > 0.2) return colors.warning || "#FFC107";
+    return colors.error || "#F44336";
   };
-
 
   const renderGroupItem = ({ item, index }: { item: Group; index: number }) => {
     const scaleAnim = new Animated.Value(0.95);
-    const progress = getExpirationProgress(item.createdAt, item.settings.expirationTime);
+    const progress = getExpirationProgress(
+      item.createdAt,
+      item.settings.expirationTime
+    );
     const progressColor = getExpirationColor(progress);
     const isExpiringSoon = progress < 0.1;
-    
+
     const handlePressIn = () => {
       Animated.spring(scaleAnim, {
         toValue: 0.97,
         useNativeDriver: true,
       }).start();
     };
-    
+
     const handlePressOut = () => {
       Animated.spring(scaleAnim, {
         toValue: 1,
@@ -147,7 +151,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           style={styles.groupItem}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            navigation.navigate('GroupChat', { groupId: item.id });
+            navigation.navigate("GroupChat", { groupId: item.id });
           }}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
@@ -156,74 +160,109 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <BlurView
             intensity={80}
             tint={theme}
-            style={[styles.groupBlur, isExpiringSoon && styles.groupBlurExpiring]}
+            style={[
+              styles.groupBlur,
+              isExpiringSoon && styles.groupBlurExpiring,
+            ]}
           >
-            <View style={[styles.groupContent, { backgroundColor: 'rgba(255, 255, 255, 0.05)' }]}>
-          <LinearGradient
-            colors={isExpiringSoon 
-              ? [colors.error || '#F44336', colors.errorLight || '#EF5350']
-              : [colors.primary, colors.primaryLight]}
-            style={styles.avatarGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <Text style={styles.avatarText}>{getInitial(item.name)}</Text>
-          </LinearGradient>
-          
-          <View style={styles.groupInfo}>
-            <View style={styles.groupHeader}>
-              <Text style={[styles.groupTitle, { color: colors.text }]}>
-                {item.name}
-              </Text>
-              {item.unreadCount > 0 && (
-                <View style={[styles.unreadBadge, { backgroundColor: colors.accent || colors.primary }]}>
-                  <Text style={styles.unreadCount}>
-                    {item.unreadCount > 99 ? '99+' : item.unreadCount.toString()}
+            <View
+              style={[
+                styles.groupContent,
+                { backgroundColor: "rgba(255, 255, 255, 0.05)" },
+              ]}
+            >
+              <LinearGradient
+                colors={
+                  isExpiringSoon
+                    ? [
+                        colors.error || "#F44336",
+                        colors.errorLight || "#EF5350",
+                      ]
+                    : [colors.primary, colors.primaryLight]
+                }
+                style={styles.avatarGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Text style={styles.avatarText}>{getInitial(item.name)}</Text>
+              </LinearGradient>
+
+              <View style={styles.groupInfo}>
+                <View style={styles.groupHeader}>
+                  <Text style={[styles.groupTitle, { color: colors.text }]}>
+                    {item.name}
                   </Text>
+                  {item.unreadCount > 0 && (
+                    <View
+                      style={[
+                        styles.unreadBadge,
+                        { backgroundColor: colors.accent || colors.primary },
+                      ]}
+                    >
+                      <Text style={styles.unreadCount}>
+                        {item.unreadCount > 99
+                          ? "99+"
+                          : item.unreadCount.toString()}
+                      </Text>
+                    </View>
+                  )}
                 </View>
-              )}
-            </View>
-            
-            {item.description && (
-              <Text 
-                style={[styles.groupDescription, { color: colors.textSecondary }]}
-                numberOfLines={1}
-              >
-                {item.description}
-              </Text>
-            )}
-            
-            <View style={styles.expirationContainer}>
-              <View style={styles.expirationInfo}>
-                <Text style={[styles.expirationLabel, { color: progressColor }]}>
-                  ⏰ {formatTimeRemaining(item.settings.expirationTime)}
-                </Text>
-                <Text style={[styles.memberCount, { color: colors.primary }]}>
-                  👥 {item.members.length}人
-                </Text>
+
+                {item.description && (
+                  <Text
+                    style={[
+                      styles.groupDescription,
+                      { color: colors.textSecondary },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {item.description}
+                  </Text>
+                )}
+
+                <View style={styles.expirationContainer}>
+                  <View style={styles.expirationInfo}>
+                    <Text
+                      style={[styles.expirationLabel, { color: progressColor }]}
+                    >
+                      ⏰ {formatTimeRemaining(item.settings.expirationTime)}
+                    </Text>
+                    <Text
+                      style={[styles.memberCount, { color: colors.primary }]}
+                    >
+                      👥 {item.members.length}人
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.progressBarContainer,
+                      { backgroundColor: colors.border },
+                    ]}
+                  >
+                    <Animated.View
+                      style={[
+                        styles.progressBar,
+                        {
+                          backgroundColor: progressColor,
+                          width: `${progress * 100}%`,
+                        },
+                      ]}
+                    />
+                  </View>
+                </View>
+
+                {item.lastMessage && (
+                  <Text
+                    style={[
+                      styles.lastMessage,
+                      { color: colors.textSecondary },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {item.lastMessage.sender}: {item.lastMessage.text}
+                  </Text>
+                )}
               </View>
-              <View style={[styles.progressBarContainer, { backgroundColor: colors.border }]}>
-                <Animated.View 
-                  style={[
-                    styles.progressBar, 
-                    { 
-                      backgroundColor: progressColor,
-                      width: `${progress * 100}%`
-                    }
-                  ]} 
-                />
-              </View>
-            </View>
-            
-            {item.lastMessage && (
-              <Text 
-                style={[styles.lastMessage, { color: colors.textSecondary }]}
-                numberOfLines={1}
-              >
-                {item.lastMessage.sender}: {item.lastMessage.text}
-              </Text>
-            )}
-          </View>
             </View>
           </BlurView>
         </TouchableOpacity>
@@ -232,12 +271,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView 
+    <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
-      edges={['top']}
+      edges={["top"]}
     >
       <LinearGradient
-        colors={[colors.primary + '15', 'transparent']}
+        colors={[colors.primary + "15", "transparent"]}
         style={styles.headerGradient}
       >
         <View style={styles.header}>
@@ -245,7 +284,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             <Text style={[styles.headerTitle, { color: colors.text }]}>
               FlowGroups
             </Text>
-            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+            <Text
+              style={[styles.headerSubtitle, { color: colors.textSecondary }]}
+            >
               {groups.length}個のアクティブグループ
             </Text>
           </View>
@@ -253,17 +294,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             style={[styles.joinButton, { backgroundColor: colors.primary }]}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              navigation.navigate('JoinGroup');
+              navigation.navigate("JoinGroup");
             }}
           >
             <Text style={styles.joinButtonText}>参加</Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
-      
+
       {groups.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <View style={[styles.emptyIconContainer, { backgroundColor: colors.primary + '20' }]}>
+          <View
+            style={[
+              styles.emptyIconContainer,
+              { backgroundColor: colors.primary + "20" },
+            ]}
+          >
             <Text style={styles.emptyIcon}>⏳</Text>
           </View>
           <Text style={[styles.emptyText, { color: colors.text }]}>
@@ -305,19 +351,19 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingTop: Platform.OS === 'ios' ? 8 : 16,
+    paddingTop: Platform.OS === "ios" ? 8 : 16,
   },
   headerLeft: {
     flex: 1,
   },
   headerTitle: {
     fontSize: 32,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: 4,
   },
   headerSubtitle: {
@@ -337,46 +383,46 @@ const styles = StyleSheet.create({
   },
   groupItem: {
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   groupBlur: {
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   groupBlurExpiring: {
     borderWidth: 1,
-    borderColor: 'rgba(244, 67, 54, 0.5)',
+    borderColor: "rgba(244, 67, 54, 0.5)",
   },
   groupContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
   },
   avatarGradient: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 16,
   },
   avatarText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   groupInfo: {
     flex: 1,
   },
   groupHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 6,
   },
   groupTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
   },
   groupDescription: {
@@ -388,26 +434,26 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   expirationInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 6,
   },
   expirationLabel: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   memberCount: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   progressBarContainer: {
     height: 4,
     borderRadius: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressBar: {
-    height: '100%',
+    height: "100%",
     borderRadius: 2,
   },
   lastMessage: {
@@ -418,27 +464,27 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     minWidth: 24,
     height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 6,
   },
   unreadCount: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 40,
   },
   emptyIconContainer: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 24,
   },
   emptyIcon: {
@@ -446,12 +492,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 20,
     opacity: 0.7,
   },
@@ -459,12 +505,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   joinButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

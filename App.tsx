@@ -217,10 +217,7 @@ const AppContent: React.FC = () => {
           },
         }}
       >
-        <Stack.Screen
-          name="MainTabs"
-          component={MainTabs}
-        />
+        <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen
           name="GroupChat"
           component={GroupChatScreen}

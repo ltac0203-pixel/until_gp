@@ -1,5 +1,5 @@
 {
-  "name": "flowgroups",
+  "name": "groupby",
   "version": "1.0.0",
   "description": "Ephemeral group chat app where groups automatically disband",
   "main": "expo/AppEntry.js",

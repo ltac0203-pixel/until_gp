@@ -282,7 +282,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={[styles.headerTitle, { color: colors.text }]}>
-              FlowGroups
+              groupby
             </Text>
             <Text
               style={[styles.headerSubtitle, { color: colors.textSecondary }]}

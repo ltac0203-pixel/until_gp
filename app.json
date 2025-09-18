@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "FlowGroups",
-    "slug": "flowgroups",
+    "name": "groupby",
+    "slug": "groupby",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",

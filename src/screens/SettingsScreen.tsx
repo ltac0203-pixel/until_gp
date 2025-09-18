@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../contexts/ThemeContext";
 import { getThemeColors } from "../utils/themes";
 import {
-  FlowGroupsSettings,
+  groupbySettings,
   GroupLifespan,
   Theme,
   UserProfile,
@@ -29,7 +29,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 const SettingsScreen: React.FC = () => {
   const { theme, setTheme } = useTheme();
   const colors = getThemeColors(theme);
-  const [settings, setSettings] = useState<FlowGroupsSettings>({
+  const [settings, setSettings] = useState<groupbySettings>({
     theme: theme,
     enableHaptics: true,
     enableTypingIndicator: true,
@@ -58,7 +58,7 @@ const SettingsScreen: React.FC = () => {
     setEditedName(user.name);
   };
 
-  const saveSettings = async (newSettings: FlowGroupsSettings) => {
+  const saveSettings = async (newSettings: groupbySettings) => {
     await StorageService.saveSettings(newSettings);
     setSettings(newSettings);
   };
@@ -91,7 +91,7 @@ const SettingsScreen: React.FC = () => {
   };
 
   const handleToggleSetting = async (
-    key: keyof FlowGroupsSettings,
+    key: keyof groupbySettings,
     value: boolean
   ) => {
     if (settings.enableHaptics) {
@@ -391,7 +391,7 @@ const SettingsScreen: React.FC = () => {
 
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-            FlowGroups v1.0.0
+            groupby v1.0.0
           </Text>
           <Text style={[styles.footerSubtext, { color: colors.textSecondary }]}>
             期限付きグループチャットアプリ

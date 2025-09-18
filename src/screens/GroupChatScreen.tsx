@@ -159,7 +159,7 @@ const GroupChatScreen: React.FC<GroupChatScreenProps> = ({
 
     try {
       await Share.share({
-        message: `FlowGroupsの招待コード: ${group.inviteCode}\n\nグループ「${group.name}」に参加しよう！`,
+        message: `groupbyの招待コード: ${group.inviteCode}\n\nグループ「${group.name}」に参加しよう！`,
         title: "グループに招待",
       });
     } catch (error) {

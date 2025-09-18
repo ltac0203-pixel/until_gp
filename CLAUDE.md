@@ -43,6 +43,15 @@ npm run web      # Web development
 npm install
 ```
 
+**Run tests:**
+```bash
+npm test              # Run Playwright tests
+npm run test:headed   # Run tests with browser visible
+npm run test:ui      # Open Playwright UI mode
+npm run test:debug   # Debug tests
+npm run test:report  # Show test report
+```
+
 **TypeScript compilation:**
 The project uses TypeScript with strict mode enabled (`tsconfig.json` extends `expo/tsconfig.base`). TypeScript errors will be shown by the Expo bundler during development.
 

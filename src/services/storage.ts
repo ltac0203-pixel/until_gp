@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Message,
-  FlowGroupsSettings,
+  GroupbySettings,
   MessageStatus,
   Group,
   GroupLifespan,
@@ -10,10 +10,10 @@ import {
   UserProfile,
 } from "../types";
 
-const MESSAGES_KEY = "@flowgroups_messages";
-const SETTINGS_KEY = "@flowgroups_settings";
-const ACTIVE_GROUPS_KEY = "@flowgroups_active_groups";
-const ARCHIVED_GROUPS_KEY = "@flowgroups_archived_groups";
+const MESSAGES_KEY = "@groupby_messages";
+const SETTINGS_KEY = "@groupby_settings";
+const ACTIVE_GROUPS_KEY = "@groupby_active_groups";
+const ARCHIVED_GROUPS_KEY = "@groupby_archived_groups";
 
 export const StorageService = {
   async saveMessages(messages: Message[]): Promise<void> {
@@ -51,7 +51,7 @@ export const StorageService = {
     }
   },
 
-  async saveSettings(settings: FlowGroupsSettings): Promise<void> {
+  async saveSettings(settings: GroupbySettings): Promise<void> {
     try {
       const jsonValue = JSON.stringify(settings);
       await AsyncStorage.setItem(SETTINGS_KEY, jsonValue);
@@ -60,7 +60,7 @@ export const StorageService = {
     }
   },
 
-  async loadSettings(): Promise<FlowGroupsSettings> {
+  async loadSettings(): Promise<GroupbySettings> {
     try {
       const jsonValue = await AsyncStorage.getItem(SETTINGS_KEY);
       if (jsonValue != null) {

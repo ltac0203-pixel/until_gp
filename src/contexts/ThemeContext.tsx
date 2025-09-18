@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Theme, FlowGroupsSettings } from '../types';
+import { Theme, GroupbySettings } from '../types';
 import { StorageService } from '../services/storage';
 
 interface ThemeContextType {
   theme: Theme;
-  settings: FlowGroupsSettings;
+  settings: GroupbySettings;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
-  updateSettings: (settings: Partial<FlowGroupsSettings>) => void;
+  updateSettings: (settings: Partial<GroupbySettings>) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -25,7 +25,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [settings, setSettings] = useState<FlowGroupsSettings>({
+  const [settings, setSettings] = useState<GroupbySettings>({
     theme: 'light',
     enableHaptics: true,
     enableTypingIndicator: true,
@@ -53,7 +53,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     updateSettings({ theme });
   };
 
-  const updateSettings = async (newSettings: Partial<FlowGroupsSettings>) => {
+  const updateSettings = async (newSettings: Partial<GroupbySettings>) => {
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
     await StorageService.saveSettings(updated);

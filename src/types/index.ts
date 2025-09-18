@@ -97,7 +97,7 @@ export interface UserProfile {
   createdAt: Date;
 }
 
-export interface FlowGroupsSettings {
+export interface GroupbySettings {
   theme: Theme;
   enableHaptics: boolean;
   enableTypingIndicator: boolean;

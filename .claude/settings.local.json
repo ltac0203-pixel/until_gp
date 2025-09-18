@@ -52,9 +52,20 @@
       "Bash(npm test)",
       "mcp__serena-mcp-server__search_for_pattern",
       "mcp__serena-mcp-server__replace_symbol_body",
-      "Bash(git remote set-url:*)"
+      "Bash(git remote set-url:*)",
+      "Bash(tasklist)",
+      "Bash(taskkill:*)",
+      "Bash(powershell:*)",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__read_memory",
+      "mcp__serena__activate_project"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "serena",
+    "playwright"
+  ]
 }

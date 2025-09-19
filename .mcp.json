@@ -11,7 +11,7 @@
         "--context",
         "ide-assistant",
         "--project",
-        "C:/product/until_gp"
+        "C:/product/groupby"
       ],
       "env": {}
     },

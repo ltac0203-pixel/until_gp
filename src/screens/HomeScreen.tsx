@@ -13,9 +13,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { useTheme } from "../contexts/ThemeContext";
+import { useGroup } from "../contexts/GroupContext";
 import { getThemeColors } from "../utils/themes";
 import { Group } from "../types";
-import { StorageService } from "../services/storage";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
@@ -28,13 +28,12 @@ interface HomeScreenProps {
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
+  const { activeGroups, loading, refreshGroups, processExpiredGroups } = useGroup();
   const colors = getThemeColors(theme);
-  const [groups, setGroups] = useState<Group[]>([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    loadGroups();
     const timer = setInterval(() => {
       setCurrentTime(new Date());
       checkExpiredGroups();
@@ -45,21 +44,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   useFocusEffect(
     React.useCallback(() => {
-      loadGroups();
-    }, [])
+      refreshGroups();
+    }, [refreshGroups])
   );
 
-  const loadGroups = async () => {
-    const { active } = await StorageService.loadGroups();
-    const sortedActive = active
-      .filter((g) => g.status === "active" || g.status === "expiring_soon")
-      .sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime());
-    setGroups(sortedActive);
-  };
+  // Groups are now managed by GroupContext
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadGroups();
+    await refreshGroups();
     setRefreshing(false);
   };
 
@@ -67,15 +60,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     const now = new Date();
     let hasExpired = false;
 
-    groups.forEach((group) => {
-      if (group.settings.expirationTime.getTime() <= now.getTime()) {
+    activeGroups.forEach((group) => {
+      if (group.settings.expirationTime?.getTime() <= now.getTime()) {
         hasExpired = true;
       }
     });
 
     if (hasExpired) {
-      await StorageService.processExpiredGroups();
-      loadGroups();
+      await processExpiredGroups();
     }
   };
 
@@ -115,10 +107,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   const renderGroupItem = ({ item, index }: { item: Group; index: number }) => {
     const scaleAnim = new Animated.Value(0.95);
-    const progress = getExpirationProgress(
+    const progress = item.settings.expirationTime ? getExpirationProgress(
       item.createdAt,
       item.settings.expirationTime
-    );
+    ) : 1;
     const progressColor = getExpirationColor(progress);
     const isExpiringSoon = progress < 0.1;
 
@@ -225,7 +217,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     <Text
                       style={[styles.expirationLabel, { color: progressColor }]}
                     >
-                      ⏰ {formatTimeRemaining(item.settings.expirationTime)}
+                      ⏰ {item.settings.expirationTime ? formatTimeRemaining(item.settings.expirationTime) : '無期限'}
                     </Text>
                     <Text
                       style={[styles.memberCount, { color: colors.primary }]}
@@ -287,7 +279,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             <Text
               style={[styles.headerSubtitle, { color: colors.textSecondary }]}
             >
-              {groups.length}個のアクティブグループ
+              {activeGroups.length}個のアクティブグループ
             </Text>
           </View>
           <TouchableOpacity
@@ -302,7 +294,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         </View>
       </LinearGradient>
 
-      {groups.length === 0 ? (
+      {activeGroups.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View
             style={[
@@ -324,7 +316,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         </View>
       ) : (
         <FlatList
-          data={groups}
+          data={activeGroups}
           renderItem={renderGroupItem}
           keyExtractor={(item) => item.id}
           style={styles.groupList}

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Theme, GroupbySettings } from '../types';
-import { StorageService } from '../services/storage';
+import { supabaseService } from '../services/supabaseService';
 
 interface ThemeContextType {
   theme: Theme;
@@ -29,7 +29,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     theme: 'light',
     enableHaptics: true,
     enableTypingIndicator: true,
-    defaultGroupLifespan: '24_hours',
+    defaultGroupLifespan: 'day',
     showExpirationWarnings: true,
     archiveRetentionDays: 30,
     autoJoinSuggestions: false,
@@ -40,7 +40,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, []);
 
   const loadSettings = async () => {
-    const savedSettings = await StorageService.loadSettings();
+    const savedSettings = await supabaseService.loadSettings();
     setSettings(savedSettings);
   };
 
@@ -56,7 +56,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const updateSettings = async (newSettings: Partial<GroupbySettings>) => {
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
-    await StorageService.saveSettings(updated);
+    await supabaseService.saveSettings(updated);
   };
 
   return (

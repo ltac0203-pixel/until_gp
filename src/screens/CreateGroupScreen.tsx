@@ -13,9 +13,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTheme } from "../contexts/ThemeContext";
+import { useGroup } from "../contexts/GroupContext";
 import { getThemeColors } from "../utils/themes";
 import { GroupLifespan } from "../types";
-import { StorageService } from "../services/storage";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
@@ -32,7 +32,7 @@ const LIFESPAN_OPTIONS: {
   icon: string;
 }[] = [
   {
-    value: "7_days",
+    value: "week",
     label: "1週間",
     duration: 7 * 24 * 60 * 60 * 1000,
     icon: "calendar-outline",
@@ -44,11 +44,12 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({
   navigation,
 }) => {
   const { theme } = useTheme();
+  const { createGroup } = useGroup();
   const colors = getThemeColors(theme);
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
   const [selectedLifespan, setSelectedLifespan] =
-    useState<GroupLifespan>("7_days");
+    useState<GroupLifespan>("week");
   const [customDate, setCustomDate] = useState(
     new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
   );
@@ -84,16 +85,22 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({
       );
     }
 
-    const newGroup = await StorageService.createGroup(
-      groupName.trim(),
-      groupDescription.trim(),
-      selectedLifespan,
-      expirationTime
-    );
+    const newGroup = await createGroup({
+      name: groupName.trim(),
+      description: groupDescription.trim() || undefined,
+      settings: {
+        lifespan: selectedLifespan,
+        expirationTime: selectedLifespan === "custom" ? expirationTime : undefined,
+      },
+    });
 
-    // Navigate to the newly created group
-    navigation.navigate("Home");
-    navigation.navigate("GroupChat", { groupId: newGroup.id });
+    if (newGroup) {
+      // Navigate to the newly created group
+      navigation.navigate("Home");
+      navigation.navigate("GroupChat", { groupId: newGroup.id });
+    } else {
+      Alert.alert("エラー", "グループの作成に失敗しました");
+    }
   };
 
   const onDateChange = (event: any, selectedDate?: Date) => {

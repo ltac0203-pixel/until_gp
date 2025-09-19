@@ -13,6 +13,9 @@ import SettingsScreen from "./src/screens/SettingsScreen";
 import GroupChatScreen from "./src/screens/GroupChatScreen";
 import JoinGroupScreen from "./src/screens/JoinGroupScreen";
 import { ThemeProvider, useTheme } from "./src/contexts/ThemeContext";
+import { AuthProvider } from "./src/contexts/AuthContext";
+import { GroupProvider } from "./src/contexts/GroupContext";
+import { AppWrapper } from "./src/components/AppWrapper";
 import { getThemeColors } from "./src/utils/themes";
 
 export type RootStackParamList = {
@@ -243,7 +246,13 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <AppContent />
+        <AuthProvider>
+          <GroupProvider>
+            <AppWrapper>
+              <AppContent />
+            </AppWrapper>
+          </GroupProvider>
+        </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

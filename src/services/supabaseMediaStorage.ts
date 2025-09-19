@@ -266,16 +266,28 @@ class SupabaseMediaStorage {
    */
   async cleanupExpiredGroupMedia(groupId: string): Promise<void> {
     try {
+      // First get all message IDs for the group
+      const { data: messages, error: messagesError } = await supabase
+        .from('messages')
+        .select('id')
+        .eq('group_id', groupId);
+
+      if (messagesError) {
+        console.error('Error getting group messages:', messagesError);
+        return;
+      }
+
+      if (!messages || messages.length === 0) {
+        return; // No messages, no attachments to clean up
+      }
+
+      const messageIds = messages.map(msg => msg.id);
+
       // Get all attachments for the group's messages
       const { data: attachments, error } = await supabase
         .from('attachments')
         .select('file_path, thumbnail_path')
-        .in('message_id',
-          supabase
-            .from('messages')
-            .select('id')
-            .eq('group_id', groupId)
-        );
+        .in('message_id', messageIds);
 
       if (error) {
         console.error('Error getting group attachments:', error);

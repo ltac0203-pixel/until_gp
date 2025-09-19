@@ -180,9 +180,16 @@ class SupabaseStorageService {
    */
   async createGroup(data: GroupCreationData): Promise<Group | null> {
     try {
+      // Get the authenticated user from Supabase auth
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error('User must be authenticated to create groups');
+      }
+
+      // Get or create user profile
       const currentUser = await authService.getCurrentChatUser();
       if (!currentUser) {
-        throw new Error('User must be authenticated to create groups');
+        throw new Error('Failed to get user profile');
       }
 
       // Calculate expiration time based on lifespan
@@ -194,13 +201,13 @@ class SupabaseStorageService {
         }
       }
 
-      // Create the group
+      // Create the group using auth.uid() to satisfy RLS policy
       const { data: groupData, error: groupError } = await supabase
         .from('groups')
         .insert({
           name: data.name,
           description: data.description,
-          created_by: currentUser.id,
+          created_by: user.id, // Use authenticated user ID directly
           expires_at: expiresAt,
           inactivity_threshold: data.settings.inactivityDays,
           message_limit: data.settings.messageLimit,
@@ -218,7 +225,7 @@ class SupabaseStorageService {
         .from('group_members')
         .insert({
           group_id: groupData.id,
-          user_id: currentUser.id,
+          user_id: user.id, // Use authenticated user ID directly
           role: 'admin',
         });
 
@@ -234,7 +241,7 @@ class SupabaseStorageService {
         description: groupData.description || undefined,
         members: [currentUser],
         createdAt: new Date(groupData.created_at),
-        createdBy: currentUser.id,
+        createdBy: user.id, // Use authenticated user ID
         lastActivity: new Date(groupData.created_at),
         unreadCount: 0,
         messages: [],

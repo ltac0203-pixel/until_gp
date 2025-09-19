@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { useTheme } from "../contexts/ThemeContext";
-import { useGroup } from "../contexts/GroupContext";
+import { useGroups } from "../contexts/GroupContext";
 import { getThemeColors } from "../utils/themes";
 import { Group } from "../types";
 import * as Haptics from "expo-haptics";
@@ -28,7 +28,7 @@ interface HomeScreenProps {
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
-  const { activeGroups, loading, refreshGroups, processExpiredGroups } = useGroup();
+  const { activeGroups, loading, refreshGroups, processExpiredGroups } = useGroups();
   const colors = getThemeColors(theme);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);

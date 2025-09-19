@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTheme } from "../contexts/ThemeContext";
-import { useGroup } from "../contexts/GroupContext";
+import { useGroups } from "../contexts/GroupContext";
 import { getThemeColors } from "../utils/themes";
 import { GroupLifespan } from "../types";
 import * as Haptics from "expo-haptics";
@@ -44,7 +44,7 @@ const CreateGroupScreen: React.FC<CreateGroupScreenProps> = ({
   navigation,
 }) => {
   const { theme } = useTheme();
-  const { createGroup } = useGroup();
+  const { createGroup } = useGroups();
   const colors = getThemeColors(theme);
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");

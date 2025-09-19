@@ -120,14 +120,8 @@ CREATE POLICY "Group admins can update groups" ON public.groups
   );
 
 -- Group members policies
-CREATE POLICY "Users can view group memberships for their groups" ON public.group_members
-  FOR SELECT USING (
-    user_id = auth.uid() OR
-    EXISTS (
-      SELECT 1 FROM public.group_members gm
-      WHERE gm.group_id = group_members.group_id AND gm.user_id = auth.uid()
-    )
-  );
+CREATE POLICY "Users can view all group memberships" ON public.group_members
+  FOR SELECT USING (true);
 
 CREATE POLICY "Users can join groups" ON public.group_members
   FOR INSERT WITH CHECK (user_id = auth.uid());
@@ -135,13 +129,8 @@ CREATE POLICY "Users can join groups" ON public.group_members
 CREATE POLICY "Users can leave groups" ON public.group_members
   FOR DELETE USING (user_id = auth.uid());
 
-CREATE POLICY "Group admins can manage members" ON public.group_members
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM public.group_members
-      WHERE group_id = group_members.group_id AND user_id = auth.uid() AND role = 'admin'
-    )
-  );
+CREATE POLICY "Users can update their own membership data" ON public.group_members
+  FOR UPDATE USING (user_id = auth.uid());
 
 -- Message policies
 CREATE POLICY "Users can view messages in their groups" ON public.messages
